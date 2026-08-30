@@ -13,7 +13,7 @@ window.unionMarketRoute = [
   },
   {
     id: 'cp-2',
-    name: 'The Courtyard',
+    name: 'La Cosecha',
     lat: 38.9099,
     lng: -76.9961,
     radius: 18,
@@ -25,19 +25,19 @@ window.unionMarketRoute = [
   },
   {
     id: 'cp-3',
-    name: 'Florida Avenue Corner',
+    name: 'Brewwery',
     lat: 38.9102,
     lng: -76.9955,
     radius: 16,
     clue: {
-      title: 'Final checkpoint',
-      text: 'Complete the route at the corner kiosk by the Florida Avenue edge. The final clue unlocks your prize route.',
+      title: 'Brewwerey Checkpoint',
+      text: 'Order a drink for boths of us. The final clue unlocks your prize route.',
       modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/Avocado.glb'
     }
   },
   {
     id: 'cp-4',
-    name: 'Rooftop View Point',
+    name: 'Balcony View Point',
     lat: 38.9105,
     lng: -76.9948,
     radius: 20,
