@@ -1,16 +1,15 @@
 const STORAGE_KEY = 'geo-hunt-state-v1';
-const GEO_FENCE_RADIUS = 18;
 
-const defaultCheckpoints = [
+const unionMarketCheckpoints = [
   {
     id: 'cp-1',
-    name: 'Fountain Gate',
-    lat: 40.7128,
-    lng: -74.006,
+    name: 'Union Market Main Entrance',
+    lat: 38.9096,
+    lng: -76.9969,
     radius: 18,
     clue: {
-      title: 'First clue',
-      text: 'The hidden note is near the fountain. Look for the glowing symbol on the stone edge.',
+      title: 'Checkpoint 1',
+      text: 'Find the stripe-marked arch at the main market entrance. The first clue is waiting near the welcome sign.',
       modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/Chair.glb'
     },
     solved: false,
@@ -18,13 +17,13 @@ const defaultCheckpoints = [
   },
   {
     id: 'cp-2',
-    name: 'Old Steps',
-    lat: 40.7132,
-    lng: -74.0055,
-    radius: 20,
+    name: 'The Courtyard',
+    lat: 38.9099,
+    lng: -76.9961,
+    radius: 18,
     clue: {
-      title: 'Second clue',
-      text: 'The next symbol is under the arch and waiting for your camera to reveal it.',
+      title: 'Checkpoint 2',
+      text: 'Head toward the courtyard edge where the market opens into the plaza. Look for the bright flag and the next clue.',
       modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/RobotExpressive.glb'
     },
     solved: false,
@@ -32,13 +31,13 @@ const defaultCheckpoints = [
   },
   {
     id: 'cp-3',
-    name: 'Cocoa Courtyard',
-    lat: 40.7123,
-    lng: -74.0048,
+    name: 'Florida Avenue Corner',
+    lat: 38.9102,
+    lng: -76.9955,
     radius: 16,
     clue: {
-      title: 'Final clue',
-      text: 'The hidden vault has opened. Scan the final marker and claim your prize.',
+      title: 'Final checkpoint',
+      text: 'Complete the route at the corner kiosk by the Florida Avenue edge. The final clue unlocks your prize route.',
       modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/Avocado.glb'
     },
     solved: false,
@@ -65,7 +64,10 @@ const elements = {
   modelViewer: document.getElementById('modelViewer'),
   clueTitle: document.getElementById('clueTitle'),
   clueText: document.getElementById('clueText'),
-  closeArButton: document.getElementById('closeArButton')
+  closeArButton: document.getElementById('closeArButton'),
+  statusBadge: document.getElementById('statusBadge'),
+  progressList: document.getElementById('progressList'),
+  progressCount: document.getElementById('progressCount')
 };
 
 function createInitialState() {
@@ -74,7 +76,7 @@ function createInitialState() {
     phase: 'boot',
     playerLocation: null,
     progress: [],
-    checkpoints: defaultCheckpoints.map((checkpoint) => ({ ...checkpoint }))
+    checkpoints: unionMarketCheckpoints.map((checkpoint) => ({ ...checkpoint }))
   };
 }
 
@@ -113,13 +115,7 @@ function haversineMeters(lat1, lon1, lat2, lon2) {
 
 function isWithinRadius(location, checkpoint) {
   if (!location || !checkpoint) return false;
-  const distance = haversineMeters(
-    location.lat,
-    location.lng,
-    checkpoint.lat,
-    checkpoint.lng
-  );
-  return distance <= checkpoint.radius;
+  return haversineMeters(location.lat, location.lng, checkpoint.lat, checkpoint.lng) <= checkpoint.radius;
 }
 
 function setPhase(nextPhase) {
@@ -162,11 +158,9 @@ function renderMap() {
     }).addTo(map);
   }
 
-  if (targetMarker && geofenceCircle) {
-    targetMarker.setLatLng([checkpoint.lat, checkpoint.lng]);
-    geofenceCircle.setLatLng([checkpoint.lat, checkpoint.lng]);
-    geofenceCircle.setRadius(checkpoint.radius);
-  }
+  targetMarker.setLatLng([checkpoint.lat, checkpoint.lng]);
+  geofenceCircle.setLatLng([checkpoint.lat, checkpoint.lng]);
+  geofenceCircle.setRadius(checkpoint.radius);
 
   if (appState.playerLocation) {
     playerMarker.setLatLng([appState.playerLocation.lat, appState.playerLocation.lng]);
@@ -174,10 +168,24 @@ function renderMap() {
   }
 }
 
+function renderStatusBadge() {
+  const phaseLabels = {
+    boot: 'Waiting for GPS',
+    map: 'Tracking checkpoint',
+    geofence_triggered: 'Checkpoint nearby',
+    ar_permission: 'Requesting camera',
+    ar_ready: 'AR active',
+    clue_reveal: 'Clue revealed',
+    complete: 'Hunt complete'
+  };
+
+  elements.statusBadge.textContent = phaseLabels[appState.phase] || 'Tracking';
+}
+
 function renderDistance() {
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint) {
-    elements.distanceText.textContent = 'Distance: --';
+    elements.distanceText.textContent = 'Distance: complete';
     return;
   }
 
@@ -187,13 +195,7 @@ function renderDistance() {
     return;
   }
 
-  const distance = haversineMeters(
-    location.lat,
-    location.lng,
-    checkpoint.lat,
-    checkpoint.lng
-  );
-
+  const distance = haversineMeters(location.lat, location.lng, checkpoint.lat, checkpoint.lng);
   elements.distanceText.textContent = `Distance: ${distance.toFixed(0)} m`;
 }
 
@@ -201,25 +203,43 @@ function renderCheckpointInfo() {
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint) {
     elements.checkpointTitle.textContent = 'Hunt complete';
-    elements.checkpointHint.textContent = 'You have solved every checkpoint.';
+    elements.checkpointHint.textContent = 'You solved every checkpoint in the Union Market route.';
     return;
   }
 
-  elements.checkpointTitle.textContent = `${checkpoint.name}`;
+  elements.checkpointTitle.textContent = checkpoint.name;
   elements.checkpointHint.textContent = checkpoint.clue.text;
 }
 
-function renderButtons() {
-  const checkpoint = getCurrentCheckpoint();
-  const isAtCheckpoint = checkpoint && isWithinRadius(appState.playerLocation, checkpoint);
+function renderProgressList() {
+  const solvedCount = appState.checkpoints.filter((checkpoint) => checkpoint.solved).length;
+  elements.progressCount.textContent = `${solvedCount} / ${appState.checkpoints.length}`;
+  elements.progressList.innerHTML = appState.checkpoints
+    .map((checkpoint) => {
+      const completeClass = checkpoint.solved ? 'complete' : '';
+      const label = checkpoint.solved ? 'Solved' : 'Locked';
+      return `
+        <li class="${completeClass}">
+          <span>${checkpoint.name}</span>
+          <span>${label}</span>
+        </li>
+      `;
+    })
+    .join('');
+}
 
+function renderButtons() {
+  if (!getCurrentCheckpoint()) {
+    elements.startButton.classList.add('hidden');
+    elements.arButton.classList.add('hidden');
+    elements.unlockButton.classList.add('hidden');
+    return;
+  }
+
+  const isAtCheckpoint = isWithinRadius(appState.playerLocation, getCurrentCheckpoint());
   elements.startButton.classList.toggle('hidden', appState.phase !== 'boot');
   elements.arButton.classList.toggle('hidden', !(appState.phase === 'geofence_triggered' || appState.phase === 'ar_ready'));
   elements.unlockButton.classList.toggle('hidden', !(appState.phase === 'ar_ready' || appState.phase === 'clue_reveal'));
-
-  if (appState.phase === 'boot') {
-    elements.startButton.textContent = 'Start Hunt';
-  }
 
   if (appState.phase === 'geofence_triggered') {
     elements.arButton.disabled = false;
@@ -232,14 +252,9 @@ function renderButtons() {
     elements.unlockButton.disabled = false;
   }
 
-  if (!checkpoint) {
-    elements.startButton.classList.add('hidden');
-    elements.arButton.classList.add('hidden');
-    elements.unlockButton.classList.add('hidden');
-  }
-
   if (appState.phase === 'map' && !isAtCheckpoint) {
     elements.arButton.classList.add('hidden');
+    elements.unlockButton.classList.add('hidden');
   }
 }
 
@@ -262,9 +277,11 @@ function renderAR() {
 }
 
 function render() {
+  renderStatusBadge();
   renderCheckpointInfo();
   renderMap();
   renderDistance();
+  renderProgressList();
   renderButtons();
   renderAR();
 }
@@ -298,30 +315,17 @@ function moveToNextCheckpoint() {
 
   appState.phase = 'complete';
   persistProgress();
-  elements.checkpointTitle.textContent = 'Hunt complete';
-  elements.checkpointHint.textContent = 'You solved every checkpoint.';
-  elements.distanceText.textContent = 'Distance: complete';
-  elements.startButton.classList.add('hidden');
-  elements.arButton.classList.add('hidden');
-  elements.unlockButton.classList.add('hidden');
+  render();
 }
 
 function evaluatePosition(position) {
   const { latitude, longitude } = position.coords;
-  appState.playerLocation = {
-    lat: latitude,
-    lng: longitude
-  };
+  appState.playerLocation = { lat: latitude, lng: longitude };
 
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint) return;
 
-  const distance = haversineMeters(
-    latitude,
-    longitude,
-    checkpoint.lat,
-    checkpoint.lng
-  );
+  const distance = haversineMeters(latitude, longitude, checkpoint.lat, checkpoint.lng);
 
   if (distance <= checkpoint.radius && appState.phase !== 'ar_ready' && appState.phase !== 'clue_reveal') {
     setPhase('geofence_triggered');
@@ -343,6 +347,7 @@ function watchLocation() {
     evaluatePosition,
     (error) => {
       console.error('Location permission error:', error);
+      elements.checkpointHint.textContent = 'Location access is required to continue the hunt.';
       appState.phase = 'boot';
       render();
     },
@@ -357,7 +362,7 @@ function watchLocation() {
 async function requestCameraPermission() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     setPhase('map');
-    elements.checkpointHint.textContent = 'Camera AR is not supported on this device. Use the map and marker fallback.';
+    elements.checkpointHint.textContent = 'Camera AR is not supported on this device. Continue with the map route for now.';
     return;
   }
 
@@ -367,7 +372,7 @@ async function requestCameraPermission() {
   } catch (error) {
     console.warn('Camera permission denied:', error);
     setPhase('map');
-    elements.checkpointHint.textContent = 'Camera access denied. Try the printed marker fallback or continue exploring the map.';
+    elements.checkpointHint.textContent = 'Camera access denied. You can continue using the route map and re-attempt later.';
   }
 }
 
@@ -390,7 +395,7 @@ function startHunt() {
     },
     (error) => {
       console.error('Location request denied:', error);
-      elements.checkpointHint.textContent = 'Location access is required to continue the hunt.';
+      elements.checkpointHint.textContent = 'Location access is required to continue the Union Market hunt.';
       setPhase('boot');
     },
     {
@@ -413,7 +418,7 @@ function bindEvents() {
   elements.startButton.addEventListener('click', startHunt);
   elements.arButton.addEventListener('click', () => {
     if (appState.phase === 'geofence_triggered') {
-      setPhase('ar_ready');
+      setPhase('ar_permission');
       requestCameraPermission();
     }
   });
