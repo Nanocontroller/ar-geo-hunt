@@ -186,6 +186,37 @@ h1 {
   display: none !important;
 }
 
+.victory-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: rgba(2, 6, 12, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.victory-card {
+  width: min(100%, 360px);
+  background: rgba(10, 18, 29, 0.96);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 22px 18px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+}
+
+.victory-card h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.8rem;
+}
+
+.victory-card p {
+  margin: 0 0 18px 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .ar-overlay {
   position: fixed;
   inset: 0;

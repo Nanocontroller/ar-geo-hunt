@@ -1,49 +1,9 @@
 const STORAGE_KEY = 'geo-hunt-state-v1';
+const ROUTE = window.unionMarketRoute || [];
 
-const unionMarketCheckpoints = [
-  {
-    id: 'cp-1',
-    name: 'Union Market Main Entrance',
-    lat: 38.9096,
-    lng: -76.9969,
-    radius: 18,
-    clue: {
-      title: 'Checkpoint 1',
-      text: 'Find the stripe-marked arch at the main market entrance. The first clue is waiting near the welcome sign.',
-      modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/Chair.glb'
-    },
-    solved: false,
-    solvedAt: null
-  },
-  {
-    id: 'cp-2',
-    name: 'The Courtyard',
-    lat: 38.9099,
-    lng: -76.9961,
-    radius: 18,
-    clue: {
-      title: 'Checkpoint 2',
-      text: 'Head toward the courtyard edge where the market opens into the plaza. Look for the bright flag and the next clue.',
-      modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/RobotExpressive.glb'
-    },
-    solved: false,
-    solvedAt: null
-  },
-  {
-    id: 'cp-3',
-    name: 'Florida Avenue Corner',
-    lat: 38.9102,
-    lng: -76.9955,
-    radius: 16,
-    clue: {
-      title: 'Final checkpoint',
-      text: 'Complete the route at the corner kiosk by the Florida Avenue edge. The final clue unlocks your prize route.',
-      modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/Avocado.glb'
-    },
-    solved: false,
-    solvedAt: null
-  }
-];
+const unionMarketCheckpoints = ROUTE.length
+  ? ROUTE.map((checkpoint) => ({ ...checkpoint, solved: false, solvedAt: null }))
+  : [];
 
 const appState = loadState();
 let map;
@@ -67,7 +27,10 @@ const elements = {
   closeArButton: document.getElementById('closeArButton'),
   statusBadge: document.getElementById('statusBadge'),
   progressList: document.getElementById('progressList'),
-  progressCount: document.getElementById('progressCount')
+  progressCount: document.getElementById('progressCount'),
+  victoryOverlay: document.getElementById('victoryOverlay'),
+  victoryText: document.getElementById('victoryText'),
+  playAgainButton: document.getElementById('playAgainButton')
 };
 
 function createInitialState() {
@@ -276,6 +239,18 @@ function renderAR() {
   }
 }
 
+function renderVictoryState() {
+  const completed = appState.checkpoints.filter((checkpoint) => checkpoint.solved).length;
+  const total = appState.checkpoints.length;
+
+  if (appState.phase === 'complete') {
+    elements.victoryText.textContent = `You solved ${completed} of ${total} checkpoints and completed the Union Market route.`;
+    elements.victoryOverlay.classList.remove('hidden');
+  } else {
+    elements.victoryOverlay.classList.add('hidden');
+  }
+}
+
 function render() {
   renderStatusBadge();
   renderCheckpointInfo();
@@ -284,6 +259,7 @@ function render() {
   renderProgressList();
   renderButtons();
   renderAR();
+  renderVictoryState();
 }
 
 function persistProgress() {
@@ -315,6 +291,15 @@ function moveToNextCheckpoint() {
 
   appState.phase = 'complete';
   persistProgress();
+  render();
+}
+
+function resetProgress() {
+  const nextState = createInitialState();
+  Object.assign(appState, nextState);
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+  saveState();
+  setPhase('boot');
   render();
 }
 
@@ -429,6 +414,9 @@ function bindEvents() {
   elements.closeArButton.addEventListener('click', () => {
     elements.arOverlay.classList.add('hidden');
     setPhase('map');
+  });
+  elements.playAgainButton.addEventListener('click', () => {
+    resetProgress();
   });
   elements.resetButton.addEventListener('click', resetProgress);
 }
