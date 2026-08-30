@@ -1,0 +1,20 @@
+name: Codebase Audit
+description: Full codebase audit for missing docs, dead code, and hardcoded values
+---
+Audit the codebase and provide a prioritized checklist of issues:
+
+1. Functions or classes missing docstrings
+2. Dead or unreachable code
+3. Hardcoded values that should be environment variables or config
+4. Inconsistent naming conventions (snake_case vs camelCase mixing, etc.)
+5. Files that have grown too large and should be split
+6. Circular imports or poor module organization
+7. If .gitmodules exists — any tight coupling to git submodule internals
+
+Output format:
+- Group issues by file
+- Number each issue
+- Mark severity: 🔴 High / 🟡 Medium / 🟢 Low
+- Do not fix anything yet — audit only
+
+I will address items one at a time after reviewing this list.

@@ -1,0 +1,29 @@
+name: Conventional Commit Message Generator
+description: Generate a conventional commit message from staged changes
+---
+Based on the current staged changes (from git diff --staged):
+
+{input}
+
+Generate a conventional commit message following this format:
+
+type(scope): short description (max 72 chars)
+
+Optional body: what changed and why (not how)
+
+Optional footer: refs #issue-number (if applicable)
+
+Types:
+- feat     → new feature
+- fix      → bug fix
+- docs     → documentation only
+- refactor → code change, no behavior change
+- chore    → build, deps, config
+- test     → adding or updating tests
+- style    → formatting, no logic change
+
+Rules:
+- Use present tense ("add" not "added")
+- Be specific — avoid vague messages like "fix bug" or "update code"
+- Scope should be the module or file area affected
+- If multiple things changed, list the most important one as the title and the rest in the body

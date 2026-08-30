@@ -1,0 +1,22 @@
+name: Python Pipeline Planner
+description: Plan a Python pipeline or AWS automation script architecture
+---
+Design a Python pipeline or script for the following task:
+
+{input}
+
+Requirements:
+- Runs locally on Mac, may interact with AWS S3 or EC2
+- Uses AWS_PROFILE for authentication (no hardcoded credentials)
+- Uses venv for dependency management unless Docker is clearly better
+- Follows single-responsibility principle (one function = one job)
+- Uses Python logging module (no print statements)
+
+Provide:
+1. Step-by-step architecture and data flow diagram (ASCII is fine)
+2. Function breakdown with input/output descriptions
+3. Recommended folder structure
+4. requirements.txt entries needed
+5. Any environment variables required (for .env.example)
+
+Do not write implementation code yet — architecture and planning only.

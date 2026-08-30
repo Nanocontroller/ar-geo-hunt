@@ -1,0 +1,20 @@
+name: Python/AWS Security Review
+description: Security and production readiness review for Python/AWS scripts
+---
+Perform a security and production-readiness review of:
+
+{input}
+
+Check for:
+1. Hardcoded credentials, keys, tokens, regions, or bucket names
+2. AWS auth using anything other than profile/env vars
+3. Missing error handling or bare except clauses
+4. Sensitive data appearing in log output
+5. Missing input validation on function parameters
+6. Functions that are too long or have multiple responsibilities
+7. Missing or incomplete Google-style docstrings
+8. Any imports that are unused or could be security risks
+
+Output format:
+- First: a prioritized numbered checklist of all issues found
+- Then: the fully corrected code with comments explaining each fix

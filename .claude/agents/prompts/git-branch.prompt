@@ -1,0 +1,23 @@
+name: Git Branch Name Generator
+description: Suggest the correct git branch name and creation command
+---
+Based on the following task description:
+
+{input}
+
+1. Suggest a git branch name following this convention:
+   - feature/   → new functionality
+   - fix/        → bug fixes
+   - docs/       → documentation only changes
+   - refactor/   → code improvements, no behavior change
+   - chore/      → dependencies, config, tooling updates
+
+   Format: type/short-kebab-case-description
+   Keep it under 40 characters. Be specific, not generic.
+
+2. Provide the exact git commands to:
+   - Switch to dev branch
+   - Pull latest changes
+   - Create and switch to the new branch
+
+3. Remind me what to do when the work is done (push + merge request to dev, not main)

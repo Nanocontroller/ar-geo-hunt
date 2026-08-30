@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Geo Hunt AR</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="map"></div>
+
+      <div class="hud">
+        <div class="panel">
+          <div class="eyebrow">Scavenger Hunt</div>
+          <h1 id="checkpointTitle">Checkpoint</h1>
+          <div id="checkpointHint" class="hint">Start the hunt to begin tracking your position.</div>
+          <div id="distanceText" class="distance">Distance: --</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="startButton" class="primary">Start Hunt</button>
+        <button id="arButton" class="secondary hidden">View AR Clue</button>
+        <button id="unlockButton" class="primary hidden">Unlock Checkpoint</button>
+        <button id="resetButton" class="ghost">Reset Progress</button>
+      </div>
+    </div>
+
+    <div id="arOverlay" class="ar-overlay hidden" aria-live="polite">
+      <div class="ar-header">
+        <span id="arLabel">AR Clue</span>
+        <button id="closeArButton" class="mini">Close</button>
+      </div>
+      <model-viewer
+        id="modelViewer"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        camera-controls
+        autoplay
+        shadow-intensity="1"
+        touch-action="pan-y"
+        src="https://modelviewer.dev/shared-assets/models/ShopifyModels/Chair.glb"
+        alt="AR clue object"
+        ios-src="https://modelviewer.dev/shared-assets/models/ShopifyModels/Chair.glb"
+      ></model-viewer>
+      <div class="ar-content">
+        <h2 id="clueTitle">Clue unlocked</h2>
+        <p id="clueText">Use the AR object to reveal the next hidden message.</p>
+      </div>
+    </div>
+
+    <script
+      type="module"
+      src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"
+    ></script>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

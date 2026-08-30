@@ -1,0 +1,18 @@
+name: AWS boto3 Integration Generator
+description: Generate production-ready boto3 AWS integration code
+---
+Write a Python AWS integration using boto3 for:
+
+{input}
+
+Requirements:
+- Authentication via AWS_PROFILE environment variable only
+- Retry logic with exponential backoff for all API calls
+- Python logging module (no print statements)
+- Complete Google-style docstrings on all functions
+- Proper exception handling with specific AWS error types (ClientError, BotoCoreError)
+- Never hardcode credentials, keys, region, or bucket names
+- Load all config from environment variables or .env file
+- Include a .env.example snippet showing required variables
+
+Structure the code so each function does one thing only.

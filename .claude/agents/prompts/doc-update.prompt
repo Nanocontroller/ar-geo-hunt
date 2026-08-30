@@ -1,0 +1,19 @@
+name: README Updater
+description: Rewrite or update README.md based on current codebase state
+---
+Review the current codebase and rewrite README.md with the following sections:
+
+1. **Project Name & Description** — one clear sentence, no jargon
+2. **What This Does** — plain English, 3-5 sentences max
+3. **Quick Start** — accurate setup steps based on current dependencies
+4. **Environment Variables** — based on .env.example if present
+5. **AWS Requirements** — profile name and permissions needed (if applicable)
+6. **Usage Examples** — based on actual function signatures in the code
+7. **Architecture** — current folder structure with one-line descriptions
+8. **Changelog** — last 3-5 significant changes
+
+Rules:
+- Keep it concise — this is for a small team, not a public library
+- Do NOT suggest creating separate DOCS files
+- Everything goes in README.md or the existing docs/ folder
+- If a docs/ file already exists, update it — do not create a new one
