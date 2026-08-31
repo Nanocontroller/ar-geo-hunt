@@ -20,6 +20,9 @@
           <div class="eyebrow">Union Market DC Adventure</div>
           <h1 id="checkpointTitle">Checkpoint</h1>
           <div id="statusBadge" class="status-badge">Waiting for GPS</div>
+          <div id="locationHelpBanner" class="location-help-banner hidden">
+            Safari may be blocking location. Open Settings → Safari → Websites → Location, then retry.
+          </div>
           <div id="checkpointHint" class="hint">Start the hunt to begin tracking your position.</div>
           <div id="distanceText" class="distance">Distance: --</div>
           <div class="progress-header">
@@ -27,6 +30,23 @@
             <span id="progressCount">0 / 5</span>
           </div>
           <ul id="progressList" class="progress-list"></ul>
+        </div>
+      </div>
+
+      <div id="debugPanel" class="debug-panel hidden">
+        <div class="debug-title">Debug</div>
+        <div class="debug-row">
+          <input id="debugLat" type="number" step="0.0001" placeholder="lat" />
+          <input id="debugLng" type="number" step="0.0001" placeholder="lng" />
+        </div>
+        <div class="debug-row debug-row-tight">
+          <input id="debugCheckpointInput" type="number" min="1" step="1" placeholder="jump to checkpoint #" />
+        </div>
+        <div class="debug-actions">
+          <button id="debugApplyButton" class="secondary small">Apply fake location</button>
+          <button id="debugNextButton" class="ghost small">Skip to next</button>
+          <button id="debugJumpButton" class="ghost small">Jump</button>
+          <button id="debugCompleteButton" class="ghost small">Complete route</button>
         </div>
       </div>
 

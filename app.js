@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'geo-hunt-state-v1';
 const ROUTE = window.unionMarketRoute || [];
+const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
 
 const unionMarketCheckpoints = ROUTE.length
   ? ROUTE.map((checkpoint) => ({ ...checkpoint, solved: false, solvedAt: null }))
@@ -26,14 +27,32 @@ const elements = {
   clueText: document.getElementById('clueText'),
   closeArButton: document.getElementById('closeArButton'),
   statusBadge: document.getElementById('statusBadge'),
+  locationHelpBanner: document.getElementById('locationHelpBanner'),
   progressList: document.getElementById('progressList'),
   progressCount: document.getElementById('progressCount'),
   introOverlay: document.getElementById('introOverlay'),
   beginAdventureButton: document.getElementById('beginAdventureButton'),
   victoryOverlay: document.getElementById('victoryOverlay'),
   victoryText: document.getElementById('victoryText'),
-  playAgainButton: document.getElementById('playAgainButton')
+  playAgainButton: document.getElementById('playAgainButton'),
+  debugPanel: document.getElementById('debugPanel'),
+  debugLat: document.getElementById('debugLat'),
+  debugLng: document.getElementById('debugLng'),
+  debugCheckpointInput: document.getElementById('debugCheckpointInput'),
+  debugApplyButton: document.getElementById('debugApplyButton'),
+  debugNextButton: document.getElementById('debugNextButton'),
+  debugJumpButton: document.getElementById('debugJumpButton'),
+  debugCompleteButton: document.getElementById('debugCompleteButton')
 };
+
+function syncViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+window.addEventListener('resize', syncViewportHeight);
+window.addEventListener('orientationchange', syncViewportHeight);
+syncViewportHeight();
 
 function createInitialState() {
   return {
@@ -145,6 +164,17 @@ function renderStatusBadge() {
   };
 
   elements.statusBadge.textContent = phaseLabels[appState.phase] || 'Tracking';
+}
+
+function setLocationHelp(message) {
+  if (!message) {
+    elements.locationHelpBanner.classList.add('hidden');
+    elements.locationHelpBanner.textContent = '';
+    return;
+  }
+
+  elements.locationHelpBanner.textContent = message;
+  elements.locationHelpBanner.classList.remove('hidden');
 }
 
 function renderDistance() {
@@ -259,6 +289,11 @@ function render() {
   renderCheckpointInfo();
   renderMap();
   renderDistance();
+  if (appState.phase === 'boot' && !appState.playerLocation) {
+    setLocationHelp('Safari may be blocking location. Open Settings → Safari → Websites → Location, then retry.');
+  } else {
+    setLocationHelp('');
+  }
   renderProgressList();
   renderButtons();
   renderAR();
@@ -370,27 +405,49 @@ function startHunt() {
     return;
   }
 
-  setPhase('map');
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      appState.playerLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-      watchLocation();
-      persistProgress();
-      render();
-    },
-    (error) => {
-      console.error('Location request denied:', error);
-      elements.checkpointHint.textContent = 'Location access is required to continue the Union Market hunt.';
-      setPhase('boot');
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 20000
-    }
-  );
+  const requestLocation = () => {
+    setPhase('map');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        appState.playerLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        watchLocation();
+        persistProgress();
+        render();
+      },
+      (error) => {
+        console.error('Location request denied:', error);
+        elements.checkpointHint.textContent = 'Location access is required to continue the Union Market hunt.';
+        setLocationHelp('Location was blocked. Open Settings → Safari → Websites → Location and allow access, then tap Start Hunt again.');
+        setPhase('boot');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000
+      }
+    );
+  };
+
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: 'geolocation' })
+      .then((permissionStatus) => {
+        if (permissionStatus.state === 'denied') {
+          elements.checkpointHint.textContent = 'Location access was previously denied. Please enable it in Safari settings, then tap Start Hunt again.';
+          setLocationHelp('Location is denied in Safari. Open Settings → Safari → Websites → Location, allow access, then retry.');
+          setPhase('boot');
+          return;
+        }
+        requestLocation();
+      })
+      .catch(() => {
+        requestLocation();
+      });
+    return;
+  }
+
+  requestLocation();
 }
 
 function resetProgress() {
@@ -402,7 +459,57 @@ function resetProgress() {
   render();
 }
 
+function applyDebugLocation(lat, lng) {
+  const latitude = Number(lat);
+  const longitude = Number(lng);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    console.warn('Debug location must be valid numbers.');
+    return;
+  }
+
+  evaluatePosition({
+    coords: {
+      latitude,
+      longitude
+    }
+  });
+}
+
+function completeDebugRoute() {
+  appState.checkpoints = appState.checkpoints.map((checkpoint) => ({
+    ...checkpoint,
+    solved: true,
+    solvedAt: checkpoint.solvedAt || new Date().toISOString()
+  }));
+  appState.phase = 'complete';
+  appState.currentCheckpointIndex = appState.checkpoints.length - 1;
+  persistProgress();
+  render();
+}
+
+function jumpToCheckpoint(index) {
+  const targetIndex = Number(index) - 1;
+  if (!Number.isInteger(targetIndex) || targetIndex < 0 || targetIndex >= appState.checkpoints.length) {
+    console.warn('Checkpoint index must be between 1 and', appState.checkpoints.length);
+    return;
+  }
+
+  appState.currentCheckpointIndex = targetIndex;
+  const checkpoint = getCurrentCheckpoint();
+  if (checkpoint) {
+    appState.playerLocation = { lat: checkpoint.lat, lng: checkpoint.lng };
+  }
+  appState.phase = 'map';
+  persistProgress();
+  render();
+}
+
 function bindEvents() {
+  if (DEBUG_MODE) {
+    elements.debugPanel.classList.remove('hidden');
+  }
+
   elements.beginAdventureButton.addEventListener('click', () => {
     elements.introOverlay.classList.add('hidden');
     startHunt();
@@ -428,11 +535,56 @@ function bindEvents() {
     elements.introOverlay.classList.remove('hidden');
   });
   elements.resetButton.addEventListener('click', resetProgress);
+
+  elements.debugApplyButton.addEventListener('click', () => {
+    const lat = elements.debugLat.value;
+    const lng = elements.debugLng.value;
+    if (!lat || !lng) {
+      console.warn('Enter both latitude and longitude in the debug panel.');
+      return;
+    }
+    applyDebugLocation(lat, lng);
+  });
+
+  elements.debugNextButton.addEventListener('click', () => {
+    if (!getCurrentCheckpoint()) return;
+    if (!getCurrentCheckpoint().solved) {
+      unlockCurrentCheckpoint();
+      return;
+    }
+    moveToNextCheckpoint();
+  });
+
+  elements.debugJumpButton.addEventListener('click', () => {
+    const requestedCheckpoint = elements.debugCheckpointInput.value;
+    if (!requestedCheckpoint) {
+      console.warn('Enter a checkpoint number to jump.');
+      return;
+    }
+    jumpToCheckpoint(requestedCheckpoint);
+  });
+
+  elements.debugCompleteButton.addEventListener('click', completeDebugRoute);
 }
 
 function init() {
   bindEvents();
   render();
 }
+
+window.geoHuntDebug = {
+  setLocation: applyDebugLocation,
+  jumpToCheckpoint,
+  nextCheckpoint: () => {
+    if (!getCurrentCheckpoint()) return;
+    if (!getCurrentCheckpoint().solved) {
+      unlockCurrentCheckpoint();
+      return;
+    }
+    moveToNextCheckpoint();
+  },
+  completeRoute: completeDebugRoute,
+  reset: resetProgress
+};
 
 init();

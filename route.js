@@ -20,7 +20,7 @@ window.unionMarketRoute = [
     clue: {
       title: 'Checkpoint 2',
       text: 'This is the part where the mission gets delicious. Find the next clue and pretend you are not already planning your next drink.',
-      modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/RobotExpressive.glb'
+      modelUrl: 'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb'
     }
   },
   {
@@ -44,7 +44,7 @@ window.unionMarketRoute = [
     clue: {
       title: 'Checkpoint 4',
       text: 'The plot thickens. You have survived the adventure, the snacks, and the walking. The final prize is not far away — and it is the kind of place you are allowed to invite yourselves to.',
-      modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/Avocado.glb'
+      modelUrl: 'https://modelviewer.dev/shared-assets/models/BoomBox.glb'
     }
   },
   {
@@ -56,7 +56,7 @@ window.unionMarketRoute = [
     clue: {
       title: 'Final surprise',
       text: 'This is it. The final stop. The place that says, “yes, we absolutely can invite ourselves here.” Mission complete — you found the anniversary prize.',
-      modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/Avocado.glb'
+      modelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb'
     }
   }
 ];
