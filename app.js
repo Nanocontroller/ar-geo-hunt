@@ -28,6 +28,8 @@ const elements = {
   statusBadge: document.getElementById('statusBadge'),
   progressList: document.getElementById('progressList'),
   progressCount: document.getElementById('progressCount'),
+  introOverlay: document.getElementById('introOverlay'),
+  beginAdventureButton: document.getElementById('beginAdventureButton'),
   victoryOverlay: document.getElementById('victoryOverlay'),
   victoryText: document.getElementById('victoryText'),
   playAgainButton: document.getElementById('playAgainButton')
@@ -201,6 +203,7 @@ function renderButtons() {
 
   const isAtCheckpoint = isWithinRadius(appState.playerLocation, getCurrentCheckpoint());
   elements.startButton.classList.toggle('hidden', appState.phase !== 'boot');
+  elements.startButton.disabled = appState.phase !== 'boot';
   elements.arButton.classList.toggle('hidden', !(appState.phase === 'geofence_triggered' || appState.phase === 'ar_ready'));
   elements.unlockButton.classList.toggle('hidden', !(appState.phase === 'ar_ready' || appState.phase === 'clue_reveal'));
 
@@ -400,6 +403,11 @@ function resetProgress() {
 }
 
 function bindEvents() {
+  elements.beginAdventureButton.addEventListener('click', () => {
+    elements.introOverlay.classList.add('hidden');
+    startHunt();
+  });
+
   elements.startButton.addEventListener('click', startHunt);
   elements.arButton.addEventListener('click', () => {
     if (appState.phase === 'geofence_triggered') {
@@ -417,6 +425,7 @@ function bindEvents() {
   });
   elements.playAgainButton.addEventListener('click', () => {
     resetProgress();
+    elements.introOverlay.classList.remove('hidden');
   });
   elements.resetButton.addEventListener('click', resetProgress);
 }

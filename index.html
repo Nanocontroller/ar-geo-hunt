@@ -24,7 +24,7 @@
           <div id="distanceText" class="distance">Distance: --</div>
           <div class="progress-header">
             <span>Progress</span>
-            <span id="progressCount">0 / 3</span>
+            <span id="progressCount">0 / 5</span>
           </div>
           <ul id="progressList" class="progress-list"></ul>
         </div>
@@ -38,10 +38,25 @@
       </div>
     </div>
 
+    <div id="introOverlay" class="intro-overlay">
+      <div class="intro-card">
+        <div class="eyebrow">Anniversary Mission</div>
+        <h2>Operation: Make It a Memory</h2>
+        <p>
+          Welcome, agent of chaos and romance. Your mission is simple: wander through Union Market,
+          follow the clues, stay silly, and arrive at the final surprise without getting too distracted by snacks.
+        </p>
+        <p>
+          The final prize is hidden somewhere delightful. It may be a bar. It may be a plan. It may be a very good excuse to invite yourselves somewhere.
+        </p>
+        <button id="beginAdventureButton" class="primary">Begin the adventure</button>
+      </div>
+    </div>
+
     <div id="victoryOverlay" class="victory-overlay hidden" aria-live="polite">
       <div class="victory-card">
         <div class="eyebrow">Mission complete</div>
-        <h2>Union Market route cleared</h2>
+        <h2>Union Market mission cleared</h2>
         <p id="victoryText">You solved every checkpoint and completed the hunt.</p>
         <button id="playAgainButton" class="primary">Play again</button>
       </div>
