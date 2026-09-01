@@ -12,7 +12,7 @@ The active approach is the full scavenger-hunt state machine (option 3):
 - clue_reveal
 - complete
 
-The app tracks route progression, geofence distance checks, AR clue gating, localStorage persistence, and a debug path for simulating route progression without walking.
+The app tracks route progression, geofence distance checks, AR clue gating, localStorage persistence, and a debug path for simulating route progression without walking. The first GPS fix is evaluated immediately, so a player already inside the geofence does not need to wait for a second location update.
 
 The project is currently in a working prototype state and is already pushed to GitHub.
 
@@ -23,7 +23,7 @@ The project is currently in a working prototype state and is already pushed to G
 - route.js — canonical checkpoint route config
 
 ## Current route
-1. REI Washington DC (201 M Street NE)
+1. REI Washington DC (201 M Street NE, 38.9053987, -77.0028936, 50 m radius)
 2. La Cosecha
 3. Eunia
 4. Red Bear Brewing
@@ -35,16 +35,26 @@ Route source is defined in `route.js` and used by app logic.
 - Start screen appears first, then the user begins the hunt.
 - App checks geolocation and watches the player position.
 - When the user nears the active checkpoint radius, the app enters the geofence-triggered state.
+- The first checkpoint is REI Washington DC and triggers within 50 meters.
+- When the geofence triggers, the app displays a "View AR Clue" action; it does not open the camera automatically.
 - AR clue screen is gated behind permissions and only becomes available if the device supports the camera flow.
 - Unlocking a checkpoint advances the route and persists progress in localStorage.
 - Final completion triggers a victory overlay.
 - The current app also includes a Safari geolocation recovery banner if permission is denied.
+- Saved state includes a route version. If an older route configuration is found, the app rebuilds checkpoint metadata from `route.js` while preserving matching progress.
 
 ## Debug features added
 The app includes a debug mode for testing without physically walking around town.
 
 Open with:
 - http://localhost:8000/?debug=1
+- https://nanocontroller.github.io/ar-geo-hunt/?debug=1
+
+Phone debug sequence:
+1. Open the HTTPS debug URL.
+2. Tap Begin the adventure.
+3. Tap Test REI geofence. This simulates a GPS position at REI and should show `Distance: 0 m` and `Checkpoint nearby`.
+4. Tap View AR Clue, allow camera access, then tap Unlock Checkpoint.
 
 Debug helpers available:
 - fake lat/lng input + Apply fake location
@@ -56,6 +66,7 @@ Debug helpers available:
 
 Console examples:
 - `geoHuntDebug.setLocation(38.9053987, -77.0028936)`
+- `geoHuntDebug.setLocation(38.9056057, -77.0028936)` (approximately 23 m from REI; should trigger)
 - `geoHuntDebug.jumpToCheckpoint(3)`
 - `geoHuntDebug.nextCheckpoint()`
 - `geoHuntDebug.completeRoute()`
@@ -65,11 +76,13 @@ Console examples:
 - Chrome/Safari viewport mismatch was addressed by using a viewport-aware height approach instead of a rigid `100vh` assumption. This is important for mobile browsers where the visible viewport height changes with browser UI chrome.
 - Safari location permission problems were addressed by using a clearly user-triggered geolocation flow and a recovery banner telling users to go to Settings → Safari → Websites → Location.
 - If permission is denied in Safari, the app now explains the fix instead of only failing silently.
+- For field testing, use the normal HTTPS URL without `?debug=1`, tap Start Hunt, and allow location access. The displayed GPS distance can differ from actual distance when the phone reports a low-accuracy fix.
 
 ## Verification status
 Fresh validation succeeded for the current version:
 - `node --check app.js` passed
 - `node --check route.js` passed
+- Browser debug test passed at 0 m and approximately 23 m, both showing `Checkpoint nearby`.
 - local static serve succeeded with HTTP 200 for the app page
 
 ## Current working assumptions
@@ -96,6 +109,9 @@ Fresh validation succeeded for the current version:
 
 ## Last known local URL for testing
 - http://localhost:8000/?debug=1
+
+## Last known published URL for phone testing
+- https://nanocontroller.github.io/ar-geo-hunt/?debug=1
 
 ## Git repo status
 The repo is already pushed and the app is in a working prototype state.
