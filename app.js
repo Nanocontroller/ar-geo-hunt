@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'geo-hunt-state-v1';
+const STORAGE_KEY = 'geo-hunt-state-v2';
 const ROUTE = window.unionMarketRoute || [];
 const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
 
@@ -409,13 +409,8 @@ function startHunt() {
     setPhase('map');
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        appState.playerLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
+        evaluatePosition(position);
         watchLocation();
-        persistProgress();
-        render();
       },
       (error) => {
         console.error('Location request denied:', error);

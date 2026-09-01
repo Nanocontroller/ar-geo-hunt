@@ -1,13 +1,13 @@
 window.unionMarketRoute = [
   {
     id: 'cp-1',
-    name: 'Union Market',
-    lat: 38.9096,
-    lng: -76.9969,
-    radius: 18,
+    name: 'REI Washington DC',
+    lat: 38.9053987,
+    lng: -77.0028936,
+    radius: 50,
     clue: {
       title: 'Checkpoint 1',
-      text: 'Mission start: find the first clue where the market is loud, the snacks are tempting, and your anniversary adventure officially begins.',
+      text: 'Mission start: find the first clue at REI and get your anniversary adventure officially underway.',
       modelUrl: 'https://modelviewer.dev/shared-assets/models/ShopifyModels/Chair.glb'
     }
   },

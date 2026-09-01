@@ -23,7 +23,7 @@ The project is currently in a working prototype state and is already pushed to G
 - route.js — canonical checkpoint route config
 
 ## Current route
-1. Union Market
+1. REI Washington DC (201 M Street NE)
 2. La Cosecha
 3. Eunia
 4. Red Bear Brewing
@@ -54,7 +54,7 @@ Debug helpers available:
 - browser console helpers at `window.geoHuntDebug`
 
 Console examples:
-- `geoHuntDebug.setLocation(38.9096, -76.9969)`
+- `geoHuntDebug.setLocation(38.9053987, -77.0028936)`
 - `geoHuntDebug.jumpToCheckpoint(3)`
 - `geoHuntDebug.nextCheckpoint()`
 - `geoHuntDebug.completeRoute()`
@@ -87,7 +87,7 @@ Fresh validation succeeded for the current version:
 
 ## Notes for the next session
 - The route config is the source of truth in `route.js`.
-- Local persistence is enabled through `localStorage` and uses the key `geo-hunt-state-v1`.
+- Local persistence is enabled through `localStorage` and uses the key `geo-hunt-state-v2`.
 - The debug mode is triggered via the query string `?debug=1`.
 - The debug console API is available at `window.geoHuntDebug`.
 - If you need to reset the route in dev, use `geoHuntDebug.reset()` or the reset button.
