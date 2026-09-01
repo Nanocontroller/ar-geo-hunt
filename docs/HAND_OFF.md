@@ -12,7 +12,7 @@ The active approach is the full scavenger-hunt state machine (option 3):
 - clue_reveal
 - complete
 
-The app tracks route progression, geofence distance checks, AR clue gating, localStorage persistence, and a debug path for simulating route progression without walking. The first GPS fix is evaluated immediately, so a player already inside the geofence does not need to wait for a second location update.
+The app tracks route progression, geofence distance checks, AR clue gating, localStorage persistence, and a debug path for simulating route progression without walking. The first GPS fix is evaluated immediately, so a player already inside the geofence does not need to wait for a second location update. AR models are served from the local `assets/models/` directory, and temporary camera permission tracks are stopped after permission is granted.
 
 The project is currently in a working prototype state and is already pushed to GitHub.
 
@@ -21,6 +21,7 @@ The project is currently in a working prototype state and is already pushed to G
 - styles.css — mobile styling, viewport sizing, debug UI
 - app.js — hunt logic, state management, debug helpers, persistence
 - route.js — canonical checkpoint route config
+- assets/models/ — local GLB files used by the AR clues
 
 ## Current route
 1. REI Washington DC (201 M Street NE, 38.9053987, -77.0028936, 50 m radius)
