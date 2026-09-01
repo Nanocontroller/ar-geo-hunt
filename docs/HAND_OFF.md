@@ -48,6 +48,7 @@ Open with:
 
 Debug helpers available:
 - fake lat/lng input + Apply fake location
+- Test REI geofence button
 - Skip to next
 - Jump to checkpoint number
 - Complete route
@@ -87,7 +88,7 @@ Fresh validation succeeded for the current version:
 
 ## Notes for the next session
 - The route config is the source of truth in `route.js`.
-- Local persistence is enabled through `localStorage` and uses the key `geo-hunt-state-v2`.
+- Local persistence is enabled through `localStorage` and uses the key `geo-hunt-state-v3`.
 - The debug mode is triggered via the query string `?debug=1`.
 - The debug console API is available at `window.geoHuntDebug`.
 - If you need to reset the route in dev, use `geoHuntDebug.reset()` or the reset button.

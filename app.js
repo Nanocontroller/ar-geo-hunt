@@ -1,4 +1,5 @@
-const STORAGE_KEY = 'geo-hunt-state-v2';
+const STORAGE_KEY = 'geo-hunt-state-v3';
+const ROUTE_VERSION = 'rei-50m-v1';
 const ROUTE = window.unionMarketRoute || [];
 const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
 
@@ -40,6 +41,7 @@ const elements = {
   debugLng: document.getElementById('debugLng'),
   debugCheckpointInput: document.getElementById('debugCheckpointInput'),
   debugApplyButton: document.getElementById('debugApplyButton'),
+  debugTestReiButton: document.getElementById('debugTestReiButton'),
   debugNextButton: document.getElementById('debugNextButton'),
   debugJumpButton: document.getElementById('debugJumpButton'),
   debugCompleteButton: document.getElementById('debugCompleteButton')
@@ -60,6 +62,7 @@ function createInitialState() {
     phase: 'boot',
     playerLocation: null,
     progress: [],
+    routeVersion: ROUTE_VERSION,
     checkpoints: unionMarketCheckpoints.map((checkpoint) => ({ ...checkpoint }))
   };
 }
@@ -70,7 +73,23 @@ function loadState() {
 
   try {
     const parsed = JSON.parse(saved);
-    return parsed && parsed.checkpoints ? parsed : createInitialState();
+    if (!parsed || parsed.routeVersion !== ROUTE_VERSION) return createInitialState();
+
+    const currentCheckpoints = unionMarketCheckpoints.map((checkpoint) => {
+      const savedCheckpoint = parsed.checkpoints.find((item) => item.id === checkpoint.id);
+      return {
+        ...checkpoint,
+        solved: Boolean(savedCheckpoint && savedCheckpoint.solved),
+        solvedAt: savedCheckpoint ? savedCheckpoint.solvedAt || null : null
+      };
+    });
+
+    return {
+      ...createInitialState(),
+      ...parsed,
+      checkpoints: currentCheckpoints,
+      routeVersion: ROUTE_VERSION
+    };
   } catch (error) {
     console.warn('Failed to load saved state:', error);
     return createInitialState();
@@ -539,6 +558,11 @@ function bindEvents() {
       return;
     }
     applyDebugLocation(lat, lng);
+  });
+
+  elements.debugTestReiButton.addEventListener('click', () => {
+    const checkpoint = unionMarketCheckpoints[0];
+    applyDebugLocation(checkpoint.lat, checkpoint.lng);
   });
 
   elements.debugNextButton.addEventListener('click', () => {
