@@ -371,6 +371,7 @@ function evaluatePosition(position) {
 
   if (distance <= checkpoint.radius && appState.phase !== 'ar_ready' && appState.phase !== 'clue_reveal') {
     setPhase('geofence_triggered');
+    elements.checkpointHint.textContent = `You are within ${checkpoint.radius} m of ${checkpoint.name}. Tap “View AR Clue” to continue.`;
   } else if (distance > checkpoint.radius && appState.phase === 'geofence_triggered') {
     setPhase('map');
   }
