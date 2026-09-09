@@ -338,7 +338,19 @@ h1 {
   flex-direction: column;
 }
 
+.ar-camera-feed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  background: #000;
+}
+
 .ar-header {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -359,13 +371,17 @@ h1 {
 }
 
 model-viewer {
+  position: relative;
+  z-index: 1;
   width: 100%;
   flex: 1;
-  background: #000;
+  background: transparent;
   min-height: 240px;
 }
 
 .ar-content {
+  position: relative;
+  z-index: 1;
   padding: 18px 16px 28px;
   background: rgba(5, 12, 18, 0.96);
 }

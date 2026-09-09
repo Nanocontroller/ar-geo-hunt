@@ -13,6 +13,7 @@ let playerMarker;
 let targetMarker;
 let geofenceCircle;
 let watchId = null;
+let arCameraStream = null;
 
 const elements = {
   checkpointTitle: document.getElementById('checkpointTitle'),
@@ -23,6 +24,7 @@ const elements = {
   statusPill: document.getElementById('statusPill'),
   infoDrawer: document.getElementById('infoDrawer'),
   arOverlay: document.getElementById('arOverlay'),
+  arCameraVideo: document.getElementById('arCameraVideo'),
   modelViewer: document.getElementById('modelViewer'),
   clueTitle: document.getElementById('clueTitle'),
   clueText: document.getElementById('clueText'),
@@ -244,14 +246,34 @@ function renderButtons() {
   elements.startButton.disabled = appState.phase !== 'boot';
 }
 
+async function startArCamera() {
+  if (arCameraStream || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+
+  try {
+    arCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    elements.arCameraVideo.srcObject = arCameraStream;
+  } catch (error) {
+    console.warn('Camera feed unavailable for AR overlay; showing model without camera passthrough.', error);
+  }
+}
+
+function stopArCamera() {
+  if (!arCameraStream) return;
+  arCameraStream.getTracks().forEach((track) => track.stop());
+  arCameraStream = null;
+  elements.arCameraVideo.srcObject = null;
+}
+
 function renderAR() {
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint || appState.phase !== 'ar_ready') {
+    stopArCamera();
     elements.arOverlay.classList.add('hidden');
     return;
   }
 
   elements.arOverlay.classList.remove('hidden');
+  startArCamera();
   elements.modelViewer.setAttribute('src', checkpoint.clue.modelUrl);
   elements.clueTitle.textContent = checkpoint.clue.title;
   elements.clueText.textContent = checkpoint.clue.text;
