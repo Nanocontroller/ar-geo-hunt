@@ -15,22 +15,27 @@
     <div id="app">
       <div id="map"></div>
 
-      <div class="hud">
-        <div class="panel">
-          <div class="eyebrow">Union Market DC Adventure</div>
-          <h1 id="checkpointTitle">Checkpoint</h1>
-          <div id="statusBadge" class="status-badge">Waiting for GPS</div>
-          <div id="locationHelpBanner" class="location-help-banner hidden">
-            Safari may be blocking location. Open Settings → Safari → Websites → Location, then retry.
-          </div>
-          <div id="checkpointHint" class="hint">Start the hunt to begin tracking your position.</div>
-          <div id="distanceText" class="distance">Distance: --</div>
-          <div class="progress-header">
-            <span>Progress</span>
-            <span id="progressCount">0 / 5</span>
-          </div>
-          <ul id="progressList" class="progress-list"></ul>
+      <button id="statusPill" class="status-pill">
+        <span id="statusBadge" class="status-badge">Waiting for GPS</span>
+        <span id="distanceText" class="distance">Distance: --</span>
+        <span class="chevron">&#9662;</span>
+      </button>
+
+      <div id="locationHelpBanner" class="location-help-banner hidden">
+        Safari may be blocking location. Open Settings → Safari → Websites → Location, then retry.
+      </div>
+
+      <div id="infoDrawer" class="info-drawer hidden">
+        <div class="drawer-handle"></div>
+        <div class="eyebrow">Union Market DC Adventure</div>
+        <h1 id="checkpointTitle">Checkpoint</h1>
+        <div id="checkpointHint" class="hint">Start the hunt to begin tracking your position.</div>
+        <div class="progress-header">
+          <span>Progress</span>
+          <span id="progressCount">0 / 5</span>
         </div>
+        <ul id="progressList" class="progress-list"></ul>
+        <button id="resetButton" class="ghost small">Reset Progress</button>
       </div>
 
       <div id="debugPanel" class="debug-panel hidden">
@@ -53,9 +58,6 @@
 
       <div class="controls">
         <button id="startButton" class="primary">Start Hunt</button>
-        <button id="arButton" class="secondary hidden">View AR Clue</button>
-        <button id="unlockButton" class="primary hidden">Unlock Checkpoint</button>
-        <button id="resetButton" class="ghost">Reset Progress</button>
       </div>
     </div>
 
@@ -86,7 +88,7 @@
     <div id="arOverlay" class="ar-overlay hidden" aria-live="polite">
       <div class="ar-header">
         <span id="arLabel">AR Clue</span>
-        <button id="closeArButton" class="mini">Close</button>
+        <button id="closeArButton" class="mini">Close &amp; continue</button>
       </div>
       <model-viewer
         id="modelViewer"

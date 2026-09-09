@@ -19,9 +19,9 @@ const elements = {
   checkpointHint: document.getElementById('checkpointHint'),
   distanceText: document.getElementById('distanceText'),
   startButton: document.getElementById('startButton'),
-  arButton: document.getElementById('arButton'),
-  unlockButton: document.getElementById('unlockButton'),
   resetButton: document.getElementById('resetButton'),
+  statusPill: document.getElementById('statusPill'),
+  infoDrawer: document.getElementById('infoDrawer'),
   arOverlay: document.getElementById('arOverlay'),
   modelViewer: document.getElementById('modelViewer'),
   clueTitle: document.getElementById('clueTitle'),
@@ -175,10 +175,7 @@ function renderStatusBadge() {
   const phaseLabels = {
     boot: 'Waiting for GPS',
     map: 'Tracking checkpoint',
-    geofence_triggered: 'Checkpoint nearby',
-    ar_permission: 'Requesting camera',
-    ar_ready: 'AR active',
-    clue_reveal: 'Clue revealed',
+    ar_ready: 'AR clue ready',
     complete: 'Hunt complete'
   };
 
@@ -243,52 +240,22 @@ function renderProgressList() {
 }
 
 function renderButtons() {
-  if (!getCurrentCheckpoint()) {
-    elements.startButton.classList.add('hidden');
-    elements.arButton.classList.add('hidden');
-    elements.unlockButton.classList.add('hidden');
-    return;
-  }
-
-  const isAtCheckpoint = isWithinRadius(appState.playerLocation, getCurrentCheckpoint());
   elements.startButton.classList.toggle('hidden', appState.phase !== 'boot');
   elements.startButton.disabled = appState.phase !== 'boot';
-  elements.arButton.classList.toggle('hidden', !(appState.phase === 'geofence_triggered' || appState.phase === 'ar_ready'));
-  elements.unlockButton.classList.toggle('hidden', !(appState.phase === 'ar_ready' || appState.phase === 'clue_reveal'));
-
-  if (appState.phase === 'geofence_triggered') {
-    elements.arButton.disabled = false;
-    elements.arButton.textContent = 'View AR Clue';
-  }
-
-  if (appState.phase === 'ar_ready' || appState.phase === 'clue_reveal') {
-    elements.arButton.textContent = 'AR Ready';
-    elements.arButton.disabled = true;
-    elements.unlockButton.disabled = false;
-  }
-
-  if (appState.phase === 'map' && !isAtCheckpoint) {
-    elements.arButton.classList.add('hidden');
-    elements.unlockButton.classList.add('hidden');
-  }
 }
 
 function renderAR() {
   const checkpoint = getCurrentCheckpoint();
-  if (!checkpoint) {
+  if (!checkpoint || appState.phase !== 'ar_ready') {
     elements.arOverlay.classList.add('hidden');
     return;
   }
 
-  if (appState.phase === 'ar_ready' || appState.phase === 'clue_reveal') {
-    elements.arOverlay.classList.remove('hidden');
-    elements.modelViewer.setAttribute('src', checkpoint.clue.modelUrl);
-    elements.modelViewer.setAttribute('ios-src', checkpoint.clue.modelUrl);
-    elements.clueTitle.textContent = checkpoint.clue.title;
-    elements.clueText.textContent = checkpoint.clue.text;
-  } else {
-    elements.arOverlay.classList.add('hidden');
-  }
+  elements.arOverlay.classList.remove('hidden');
+  elements.modelViewer.setAttribute('src', checkpoint.clue.modelUrl);
+  elements.modelViewer.setAttribute('ios-src', checkpoint.clue.modelUrl);
+  elements.clueTitle.textContent = checkpoint.clue.title;
+  elements.clueText.textContent = checkpoint.clue.text;
 }
 
 function renderVictoryState() {
@@ -369,11 +336,9 @@ function evaluatePosition(position) {
 
   const distance = haversineMeters(latitude, longitude, checkpoint.lat, checkpoint.lng);
 
-  if (distance <= checkpoint.radius && appState.phase !== 'ar_ready' && appState.phase !== 'clue_reveal') {
-    setPhase('geofence_triggered');
-    elements.checkpointHint.textContent = `You are within ${checkpoint.radius} m of ${checkpoint.name}. Tap “View AR Clue” to continue.`;
-  } else if (distance > checkpoint.radius && appState.phase === 'geofence_triggered') {
-    setPhase('map');
+  if (distance <= checkpoint.radius && appState.phase === 'map') {
+    elements.infoDrawer.classList.add('hidden');
+    setPhase('ar_ready');
   }
 
   persistProgress();
@@ -402,21 +367,14 @@ function watchLocation() {
   );
 }
 
-async function requestCameraPermission() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    setPhase('map');
-    elements.checkpointHint.textContent = 'Camera AR is not supported on this device. Continue with the map route for now.';
-    return;
-  }
+async function warmUpCameraPermission() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
 
   try {
     const cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     cameraStream.getTracks().forEach((track) => track.stop());
-    setPhase('ar_ready');
   } catch (error) {
-    console.warn('Camera permission denied:', error);
-    setPhase('map');
-    elements.checkpointHint.textContent = 'Camera access denied. You can continue using the route map and re-attempt later.';
+    console.warn('Camera permission not granted up front; AR clue will still display without device camera passthrough.', error);
   }
 }
 
@@ -528,24 +486,15 @@ function bindEvents() {
 
   elements.beginAdventureButton.addEventListener('click', () => {
     elements.introOverlay.classList.add('hidden');
+    warmUpCameraPermission();
     startHunt();
   });
 
   elements.startButton.addEventListener('click', startHunt);
-  elements.arButton.addEventListener('click', () => {
-    if (appState.phase === 'geofence_triggered') {
-      setPhase('ar_permission');
-      requestCameraPermission();
-    }
+  elements.statusPill.addEventListener('click', () => {
+    elements.infoDrawer.classList.toggle('hidden');
   });
-  elements.unlockButton.addEventListener('click', () => {
-    setPhase('clue_reveal');
-    unlockCurrentCheckpoint();
-  });
-  elements.closeArButton.addEventListener('click', () => {
-    elements.arOverlay.classList.add('hidden');
-    setPhase('map');
-  });
+  elements.closeArButton.addEventListener('click', unlockCurrentCheckpoint);
   elements.playAgainButton.addEventListener('click', () => {
     resetProgress();
     elements.introOverlay.classList.remove('hidden');

@@ -3,16 +3,15 @@
 ## Current status
 This project is a mobile-first browser scavenger hunt prototype for a DC anniversary route. It is built as a static web app and designed to run without install on a phone.
 
-The active approach is the full scavenger-hunt state machine (option 3):
+The active approach is a simplified scavenger-hunt state machine:
 - boot
 - map
-- geofence_triggered
-- ar_permission
 - ar_ready
-- clue_reveal
 - complete
 
-The app tracks route progression, geofence distance checks, AR clue gating, localStorage persistence, and a debug path for simulating route progression without walking. The first GPS fix is evaluated immediately, so a player already inside the geofence does not need to wait for a second location update. AR models are served from the local `assets/models/` directory, and temporary camera permission tracks are stopped after permission is granted.
+The app tracks route progression, geofence distance checks, AR clue gating, localStorage persistence, and a debug path for simulating route progression without walking. The first GPS fix is evaluated immediately, so a player already inside the geofence does not need to wait for a second location update. AR models are served from the local `assets/models/` directory.
+
+Camera permission is warmed up once, right when the player taps "Begin the adventure" (a user gesture, required for `getUserMedia` on iOS Safari), and the temporary stream is stopped immediately. That warm-up is best-effort only — it does not gate whether the AR clue is shown.
 
 The project is currently in a working prototype state and is already pushed to GitHub.
 
@@ -33,14 +32,12 @@ The project is currently in a working prototype state and is already pushed to G
 Route source is defined in `route.js` and used by app logic.
 
 ## Behavior summary
-- Start screen appears first, then the user begins the hunt.
+- Start screen appears first, then the user begins the hunt (this tap also warms up camera permission).
 - App checks geolocation and watches the player position.
-- When the user nears the active checkpoint radius, the app enters the geofence-triggered state.
+- The map fills the entire screen at all times. A small floating status pill (status + live distance) sits on top; tapping it opens/closes an info drawer with the checkpoint title, clue text, progress list, and Reset Progress — the map is never blocked by a permanent panel.
 - The first checkpoint is REI Washington DC and triggers within 50 meters.
-- When the geofence triggers, the app displays a "View AR Clue" action; it does not open the camera automatically.
-- AR clue screen is gated behind permissions and only becomes available if the device supports the camera flow.
-- Unlocking a checkpoint advances the route and persists progress in localStorage.
-- Final completion triggers a victory overlay.
+- When the player enters a checkpoint's radius, the AR clue overlay opens automatically (full-screen 3D model + clue text) — no manual "View AR Clue" tap and no per-checkpoint permission prompt.
+- Tapping "Close & continue" on the AR overlay unlocks the checkpoint, persists progress, and immediately advances to the next checkpoint (or to the victory overlay after the last checkpoint's AR clue is closed).
 - The current app also includes a Safari geolocation recovery banner if permission is denied.
 - Saved state includes a route version. If an older route configuration is found, the app rebuilds checkpoint metadata from `route.js` while preserving matching progress.
 
@@ -54,8 +51,8 @@ Open with:
 Phone debug sequence:
 1. Open the HTTPS debug URL.
 2. Tap Begin the adventure.
-3. Tap Test REI geofence. This simulates a GPS position at REI and should show `Distance: 0 m` and `Checkpoint nearby`.
-4. Tap View AR Clue, allow camera access, then tap Unlock Checkpoint.
+3. Tap Test REI geofence. This simulates a GPS position at REI and should show `Distance: 0 m` and the AR clue overlay opening automatically.
+4. Tap Close & continue to unlock the checkpoint and advance to the next one.
 
 Debug helpers available:
 - fake lat/lng input + Apply fake location
