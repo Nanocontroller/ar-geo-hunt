@@ -253,7 +253,6 @@ function renderAR() {
 
   elements.arOverlay.classList.remove('hidden');
   elements.modelViewer.setAttribute('src', checkpoint.clue.modelUrl);
-  elements.modelViewer.setAttribute('ios-src', checkpoint.clue.modelUrl);
   elements.clueTitle.textContent = checkpoint.clue.title;
   elements.clueText.textContent = checkpoint.clue.text;
 }
