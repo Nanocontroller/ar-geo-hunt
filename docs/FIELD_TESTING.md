@@ -28,7 +28,7 @@ Accuracy/GPS-drift testing is out of scope here. That requires either walking th
 
 4. A debug panel should be visible near the bottom of the screen. Tap **Test REI geofence** — this injects checkpoint 1's exact coordinates directly into app state.
 
-5. **Expected result:** the AR overlay pops open immediately and automatically, showing the first 3D model and clue text — no extra taps required. Confirm the model renders and is interactive (drag to orbit).
+5. **Expected result:** the AR overlay pops open immediately and automatically, with your live camera feed filling the background and the first 3D model floating over it, plus the clue text — no extra taps required. Confirm the model renders and is interactive (drag to orbit), and that the camera feed is actually live (not a frozen/black background).
 
 6. Tap **Close & continue**.
    - Expected: overlay closes, progress becomes `1 / 5`, the map re-centers, and the status pill now reflects checkpoint 2 (La Cosecha).
@@ -47,13 +47,13 @@ Accuracy/GPS-drift testing is out of scope here. That requires either walking th
 
    Each one should auto-pop its AR overlay the same way step 5 did.
 
-8. On checkpoint 5's AR overlay, also tap **model-viewer's own built-in AR icon** (small icon in the corner of the 3D view — not the app's "Close & continue" button). This triggers real iOS Quick Look AR using the actual camera. Worth checking here since it's unrelated to GPS and is the one piece of native AR behavior that only real iOS hardware can validate.
+8. On checkpoint 5's AR overlay, also tap **model-viewer's own built-in AR icon** (small icon in the corner of the 3D view — not the app's "Close & continue" button, and not the same thing as the automatic camera feed in step 5). This is optional/secondary: it hands off to real iOS Quick Look for true world-anchored placement, using the same camera. Worth checking since it's unrelated to GPS and is the one piece of native AR behavior that only real iOS hardware can validate.
 
 9. After closing checkpoint 5's AR, confirm the victory overlay appears.
 
 ## What to flag
-The two spots most likely to behave differently on real iOS vs. the headless browser test already run:
-- Step 5/7 — AR overlay not auto-popping on arrival.
+The spots most likely to behave differently on real iOS vs. the headless browser test already run:
+- Step 5/7 — AR overlay not auto-popping on arrival, or camera feed not appearing/staying frozen.
 - Step 8 — Quick Look not launching from model-viewer's native AR button.
 
 ## Later: simulating real walking (Xcode + GPX)
