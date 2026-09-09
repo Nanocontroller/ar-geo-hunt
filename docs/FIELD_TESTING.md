@@ -9,6 +9,9 @@ Accuracy/GPS-drift testing is out of scope here. That requires either walking th
 - iPhone with Safari
 - Mac with Xcode/Safari installed (only needed for the optional remote console in step 1)
 
+## Cache note
+`app.js`, `styles.css`, and `route.js` are loaded with a `?v=N` query param and GitHub Pages caches them for 10 minutes (`cache-control: max-age=600`). If you re-test after a new push and still see old behavior (e.g. errors referencing line numbers that don't match the current file), your phone likely has the previous version cached. Bump the `?v=N` suffix on those three `<script>`/`<link>` tags in `index.html` on each push that changes them, or test in a Private Browsing tab to bypass the cache immediately.
+
 ## Steps
 
 1. **Enable Safari's remote console on the iPhone** (optional, but makes steps 7+ much easier):
