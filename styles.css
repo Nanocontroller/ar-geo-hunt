@@ -91,6 +91,15 @@ button:disabled {
   font-size: 0.7rem;
 }
 
+@keyframes pill-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-pill.loading .status-badge {
+  animation: pill-pulse 1.4s ease-in-out infinite;
+}
+
 .info-drawer {
   position: absolute;
   top: max(64px, calc(env(safe-area-inset-top) + 64px));
@@ -304,6 +313,28 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.intro-overlay.hidden,
+.victory-overlay.hidden,
+.ar-overlay.hidden {
+  display: flex !important;
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+}
+
+.intro-card,
+.victory-card {
+  transition: transform 0.25s ease;
+}
+
+.intro-overlay.hidden .intro-card,
+.victory-overlay.hidden .victory-card {
+  transform: translateY(10px);
 }
 
 .intro-card,
@@ -334,6 +365,9 @@ h1 {
   inset: 0;
   background: rgba(2, 6, 12, 0.92);
   z-index: 1200;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  opacity: 1;
+  transform: scale(1);
   display: flex;
   flex-direction: column;
 }

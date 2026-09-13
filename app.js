@@ -14,6 +14,7 @@ let targetMarker;
 let geofenceCircle;
 let watchId = null;
 let arCameraStream = null;
+const prefetchedModelUrls = new Set();
 
 const elements = {
   checkpointTitle: document.getElementById('checkpointTitle'),
@@ -182,6 +183,7 @@ function renderStatusBadge() {
   };
 
   elements.statusBadge.textContent = phaseLabels[appState.phase] || 'Tracking';
+  elements.statusPill.classList.toggle('loading', !appState.playerLocation);
 }
 
 function setLocationHelp(message) {
@@ -264,6 +266,14 @@ function stopArCamera() {
   elements.arCameraVideo.srcObject = null;
 }
 
+function prefetchNextModel() {
+  const nextCheckpoint = appState.checkpoints[appState.currentCheckpointIndex + 1];
+  if (!nextCheckpoint || prefetchedModelUrls.has(nextCheckpoint.clue.modelUrl)) return;
+
+  prefetchedModelUrls.add(nextCheckpoint.clue.modelUrl);
+  fetch(nextCheckpoint.clue.modelUrl).catch(() => {});
+}
+
 function renderAR() {
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint || appState.phase !== 'ar_ready') {
@@ -277,6 +287,7 @@ function renderAR() {
   elements.modelViewer.setAttribute('src', checkpoint.clue.modelUrl);
   elements.clueTitle.textContent = checkpoint.clue.title;
   elements.clueText.textContent = checkpoint.clue.text;
+  prefetchNextModel();
 }
 
 function renderVictoryState() {
