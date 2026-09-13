@@ -13,7 +13,9 @@ The app tracks route progression, geofence distance checks, AR clue gating, loca
 
 Camera permission is warmed up once, right when the player taps "Begin the adventure" (a user gesture, required for `getUserMedia` on iOS Safari), and the temporary stream is stopped immediately. That warm-up is best-effort only — it does not gate whether the AR clue is shown.
 
-The map is rendered with Mapbox GL JS (v3.30.0, loaded from Mapbox's CDN) using a custom style (`mapbox://styles/nanocontroller/cmfywcwmu004c01qtfpkpbgqd`), replacing the earlier Leaflet + OpenStreetMap tile setup. The Mapbox access token and style URL are both constants near the top of `app.js`. The geofence radius is drawn as a GeoJSON circle polygon (haversine-based, ~64 points) since Mapbox GL has no built-in meters-radius circle primitive. The map does not auto-follow the player on every GPS update (to avoid fighting manual pan/zoom); it only flies to the new checkpoint when the active checkpoint changes.
+The map is rendered with Mapbox GL JS (v3.30.0, loaded from Mapbox's CDN) using a custom style (`mapbox://styles/nanocontroller/cmfywcwmu004c01qtfpkpbgqd`, named "Faded-copy" — intentionally label-free, so no street names render; that is a style choice, not a bug), replacing the earlier Leaflet + OpenStreetMap tile setup. The Mapbox access token (URL-restricted to `nanocontroller.github.io`) and style URL are both constants near the top of `app.js`. The geofence radius is drawn as a GeoJSON circle polygon (haversine-based, ~64 points) since Mapbox GL has no built-in meters-radius circle primitive. The map does not auto-follow the player on every GPS update (to avoid fighting manual pan/zoom); it only flies to the new checkpoint when the active checkpoint changes.
+
+On-map wayfinding aids: a live dashed **walking route** from the player to the active stop (Mapbox Directions API `walking` profile, refreshed when the player moves >15 m or the stop changes, cleared when the AR overlay opens); a **building highlight** tinting the destination footprint (queried from an invisible `buildings-lookup` layer sourced from `mapbox.mapbox-streets-v8`); a **target pin labeled with the stop name**; a **direction arrow + walking ETA/distance** in the status pill; a **recenter button** that re-fits the map to include both the player and the target; and a translucent **GPS accuracy ring** around the player. Geofence entry is debounced — a fix that is confidently inside (distance + accuracy ≤ radius) triggers instantly, otherwise two consecutive in-radius fixes are required so a single bad GPS reading can't false-trigger; this never blocks arrival regardless of accuracy.
 
 The project is currently in a working prototype state and is already pushed to GitHub.
 
@@ -39,7 +41,8 @@ Route source is defined in `route.js` and used by app logic. Union Market was ad
 - App checks geolocation and watches the player position.
 - The map fills the entire screen at all times. A small floating status pill (status + live distance) sits on top; tapping it opens/closes an info drawer with the checkpoint title, clue text, progress list, and Reset Progress — the map is never blocked by a permanent panel.
 - The first checkpoint is REI Washington DC and triggers within 50 meters.
-- When the player enters a checkpoint's radius, the AR clue overlay opens automatically (full-screen 3D model + clue text) — no manual "View AR Clue" tap and no per-checkpoint permission prompt.
+- While tracking, the status pill shows a direction arrow toward the target plus the walking ETA and distance, and a dashed walking route is drawn on the map to the target. A recenter button re-fits the view to include the player and the target.
+- When the player enters a checkpoint's radius (see the debounce rule above), the AR clue overlay opens automatically (full-screen 3D model + clue text), with a brief pin "arrival" animation — no manual "View AR Clue" tap and no per-checkpoint permission prompt.
 - Tapping "Close & continue" on the AR overlay unlocks the checkpoint, persists progress, and immediately advances to the next checkpoint (or to the victory overlay after the last checkpoint's AR clue is closed).
 - The current app also includes a Safari geolocation recovery banner if permission is denied.
 - Saved state includes a route version. If an older route configuration is found, the app rebuilds checkpoint metadata from `route.js` while preserving matching progress.
@@ -58,14 +61,16 @@ Phone debug sequence:
 4. Tap Close & continue to unlock the checkpoint and advance to the next one.
 
 Debug helpers available:
+- **`type: stop N` box + Play full stop** — plays a stop's entire arrival (fly-in → walking route → auto AR clue). Fastest way to preview any stop; see `FIELD_TESTING.md`.
 - fake lat/lng input + Apply fake location
 - Test REI geofence button
 - Skip to next
 - Jump to checkpoint number
 - Complete route
-- browser console helpers at `window.geoHuntDebug`
+- browser console helpers at `window.geoHuntDebug` (includes `geoHuntDebug.stop(N)`)
 
 Console examples:
+- `geoHuntDebug.stop(3)`
 - `geoHuntDebug.setLocation(38.9053987, -77.0028936)`
 - `geoHuntDebug.setLocation(38.9056057, -77.0028936)` (approximately 23 m from REI; should trigger)
 - `geoHuntDebug.jumpToCheckpoint(3)`

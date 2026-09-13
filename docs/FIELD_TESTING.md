@@ -87,10 +87,19 @@ From `route.js`, for the lat/lng + Apply fake location fields:
 | 5 | Red Bear Brewing | 38.905570 | -77.002481 |
 | 6 | The Rigby | 38.906031 | -77.002184 |
 
+## On-map aids while walking
+As you move (in `map` phase, before arrival) you should also see:
+- A **direction arrow + walking ETA/distance** in the status pill (e.g. "6 min · 450 m walk"), pointing toward the target.
+- A dashed **walking route** to the target and the **target pin labeled** with the stop name.
+- A translucent **GPS accuracy ring** around your position, and a **recenter button** (bottom-right) that re-fits the map to show both you and the target.
+
+Note on arrival: entry is **debounced**. If your fix is confidently inside the radius (distance + accuracy ≤ radius) the clue opens instantly; otherwise it waits for two consecutive in-radius fixes (~2 s) so a single bad GPS reading can't false-trigger. It never blocks arrival, however poor the accuracy.
+
 ## What to flag
 The spots most likely to behave differently on real iOS vs. the headless browser tests:
 - AR overlay not auto-popping on arrival, or the camera feed not appearing / staying frozen.
-- The walking route not drawing (needs the Directions API + a working Mapbox token on the live domain).
+- The walking route / ETA not drawing (needs the Directions API + a working Mapbox token on the live domain).
+- The direction arrow or accuracy ring not updating as you move.
 - model-viewer's native AR (Quick Look) not launching from step 7.
 
 ## Later: simulating real walking (Xcode + GPX)
