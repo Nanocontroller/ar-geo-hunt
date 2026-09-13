@@ -216,8 +216,14 @@ async function updateWalkingRoute(checkpoint, playerLocation) {
   }
 }
 
+function setTargetLabel(name) {
+  const label = targetMarker.getElement().querySelector('.marker-label');
+  if (label) label.textContent = name;
+}
+
 function updateMapForCheckpoint(checkpoint) {
   targetMarker.setLngLat([checkpoint.lng, checkpoint.lat]);
+  setTargetLabel(checkpoint.name);
 
   const geofenceSource = map.getSource('geofence');
   if (geofenceSource) geofenceSource.setData(geofenceCirclePolygon(checkpoint));
@@ -312,6 +318,11 @@ function renderMap() {
       map.on('idle', () => highlightCheckpointBuilding(getCurrentCheckpoint()));
 
       targetMarker = createMapMarker('marker-target', loadCheckpoint.lng, loadCheckpoint.lat);
+      const targetLabel = document.createElement('span');
+      targetLabel.className = 'marker-label';
+      targetLabel.textContent = loadCheckpoint.name;
+      targetMarker.getElement().appendChild(targetLabel);
+
       playerMarker = createMapMarker('marker-player', loadCheckpoint.lng, loadCheckpoint.lat);
       lastRenderedCheckpointId = loadCheckpoint.id;
 
