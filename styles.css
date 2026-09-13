@@ -431,20 +431,19 @@ model-viewer {
   line-height: 1.55;
 }
 
-.leaflet-control-attribution {
-  font-size: 10px;
+.map-marker {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
 .marker-player {
   background: #4ec7ff;
-  border: 2px solid rgba(255,255,255,.9);
-  border-radius: 50%;
   box-shadow: 0 0 0 6px rgba(78, 199, 255, 0.18);
 }
 
 .marker-target {
   background: var(--warning);
-  border: 2px solid rgba(255,255,255,.9);
-  border-radius: 50%;
   box-shadow: 0 0 0 6px rgba(247, 185, 85, 0.18);
 }

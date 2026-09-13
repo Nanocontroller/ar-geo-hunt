@@ -1,7 +1,10 @@
 const STORAGE_KEY = 'geo-hunt-state-v3';
-const ROUTE_VERSION = 'rei-50m-v1';
+const ROUTE_VERSION = 'union-market-6stop-v1';
 const ROUTE = window.unionMarketRoute || [];
 const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
+
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibmFub2NvbnRyb2xsZXIiLCJhIjoiY21meXVoZzZnMHBkaDJ3cHpraGVwaGZ5aSJ9.qV5HyHZDbI0uEvjS6CmGKw';
+const MAPBOX_STYLE = 'mapbox://styles/nanocontroller/cmfywcwmu004c01qtfpkpbgqd';
 
 const unionMarketCheckpoints = ROUTE.length
   ? ROUTE.map((checkpoint) => ({ ...checkpoint, solved: false, solvedAt: null }))
@@ -9,9 +12,10 @@ const unionMarketCheckpoints = ROUTE.length
 
 const appState = loadState();
 let map;
+let mapReady = false;
 let playerMarker;
 let targetMarker;
-let geofenceCircle;
+let lastRenderedCheckpointId = null;
 let watchId = null;
 let arCameraStream = null;
 const prefetchedModelUrls = new Set();
@@ -129,49 +133,88 @@ function setPhase(nextPhase) {
   render();
 }
 
+function geofenceCirclePolygon(checkpoint, points = 64) {
+  const coords = [];
+  const distanceX = checkpoint.radius / (111320 * Math.cos((checkpoint.lat * Math.PI) / 180));
+  const distanceY = checkpoint.radius / 110540;
+
+  for (let i = 0; i <= points; i += 1) {
+    const theta = (i / points) * (2 * Math.PI);
+    coords.push([checkpoint.lng + distanceX * Math.cos(theta), checkpoint.lat + distanceY * Math.sin(theta)]);
+  }
+
+  return {
+    type: 'Feature',
+    geometry: { type: 'Polygon', coordinates: [coords] }
+  };
+}
+
+function createMapMarker(className, lng, lat) {
+  const el = document.createElement('div');
+  el.className = `map-marker ${className}`;
+  return new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
+}
+
+function updateMapForCheckpoint(checkpoint) {
+  targetMarker.setLngLat([checkpoint.lng, checkpoint.lat]);
+
+  const geofenceSource = map.getSource('geofence');
+  if (geofenceSource) geofenceSource.setData(geofenceCirclePolygon(checkpoint));
+
+  if (checkpoint.id !== lastRenderedCheckpointId) {
+    lastRenderedCheckpointId = checkpoint.id;
+    map.flyTo({ center: [checkpoint.lng, checkpoint.lat], zoom: 17, duration: 1200 });
+  }
+
+  if (appState.playerLocation) {
+    playerMarker.setLngLat([appState.playerLocation.lng, appState.playerLocation.lat]);
+  }
+}
+
 function renderMap() {
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint) return;
 
   if (!map) {
-    map = L.map('map', { zoomControl: true }).setView([checkpoint.lat, checkpoint.lng], 17);
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    map = new mapboxgl.Map({
+      container: 'map',
+      style: MAPBOX_STYLE,
+      center: [checkpoint.lng, checkpoint.lat],
+      zoom: 17
+    });
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    map.on('load', () => {
+      const loadCheckpoint = getCurrentCheckpoint();
+      if (!loadCheckpoint) return;
 
-    targetMarker = L.circleMarker([checkpoint.lat, checkpoint.lng], {
-      radius: 9,
-      color: '#f7b955',
-      fillColor: '#f7b955',
-      fillOpacity: 0.9,
-      className: 'marker-target'
-    }).addTo(map);
+      map.addSource('geofence', { type: 'geojson', data: geofenceCirclePolygon(loadCheckpoint) });
+      map.addLayer({
+        id: 'geofence-fill',
+        type: 'fill',
+        source: 'geofence',
+        paint: { 'fill-color': '#39d98a', 'fill-opacity': 0.14 }
+      });
+      map.addLayer({
+        id: 'geofence-line',
+        type: 'line',
+        source: 'geofence',
+        paint: { 'line-color': '#39d98a', 'line-width': 2 }
+      });
 
-    geofenceCircle = L.circle([checkpoint.lat, checkpoint.lng], {
-      radius: checkpoint.radius,
-      color: '#39d98a',
-      fillColor: '#39d98a',
-      fillOpacity: 0.14
-    }).addTo(map);
+      targetMarker = createMapMarker('marker-target', loadCheckpoint.lng, loadCheckpoint.lat);
+      playerMarker = createMapMarker('marker-player', loadCheckpoint.lng, loadCheckpoint.lat);
+      lastRenderedCheckpointId = loadCheckpoint.id;
 
-    playerMarker = L.circleMarker([0, 0], {
-      radius: 8,
-      color: '#4ec7ff',
-      fillColor: '#4ec7ff',
-      fillOpacity: 0.9,
-      className: 'marker-player'
-    }).addTo(map);
+      mapReady = true;
+      updateMapForCheckpoint(loadCheckpoint);
+    });
+
+    return;
   }
 
-  targetMarker.setLatLng([checkpoint.lat, checkpoint.lng]);
-  geofenceCircle.setLatLng([checkpoint.lat, checkpoint.lng]);
-  geofenceCircle.setRadius(checkpoint.radius);
-
-  if (appState.playerLocation) {
-    playerMarker.setLatLng([appState.playerLocation.lat, appState.playerLocation.lng]);
-    map.setView([appState.playerLocation.lat, appState.playerLocation.lng], map.getZoom());
-  }
+  if (mapReady) updateMapForCheckpoint(checkpoint);
 }
 
 function renderStatusBadge() {

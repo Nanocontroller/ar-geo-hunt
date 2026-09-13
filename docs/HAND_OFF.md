@@ -13,6 +13,8 @@ The app tracks route progression, geofence distance checks, AR clue gating, loca
 
 Camera permission is warmed up once, right when the player taps "Begin the adventure" (a user gesture, required for `getUserMedia` on iOS Safari), and the temporary stream is stopped immediately. That warm-up is best-effort only — it does not gate whether the AR clue is shown.
 
+The map is rendered with Mapbox GL JS (v3.30.0, loaded from Mapbox's CDN) using a custom style (`mapbox://styles/nanocontroller/cmfywcwmu004c01qtfpkpbgqd`), replacing the earlier Leaflet + OpenStreetMap tile setup. The Mapbox access token and style URL are both constants near the top of `app.js`. The geofence radius is drawn as a GeoJSON circle polygon (haversine-based, ~64 points) since Mapbox GL has no built-in meters-radius circle primitive. The map does not auto-follow the player on every GPS update (to avoid fighting manual pan/zoom); it only flies to the new checkpoint when the active checkpoint changes.
+
 The project is currently in a working prototype state and is already pushed to GitHub.
 
 ## Project files
@@ -23,13 +25,14 @@ The project is currently in a working prototype state and is already pushed to G
 - assets/models/ — local GLB files used by the AR clues
 
 ## Current route
-1. REI Washington DC (201 M Street NE, 38.9053987, -77.0028936, 50 m radius)
-2. La Cosecha
-3. Eunia
-4. Red Bear Brewing
-5. The Rigby
+1. REI Washington DC (38.9053987, -77.0028936, 50 m radius)
+2. Union Market (38.908306, -76.997250, 20 m radius)
+3. La Cosecha (38.908778, -76.999444, 18 m radius)
+4. Eunia (38.907966, -77.001971, 16 m radius)
+5. Red Bear Brewing (38.905570, -77.002481, 18 m radius)
+6. The Rigby (38.906031, -77.002184, 20 m radius)
 
-Route source is defined in `route.js` and used by app logic.
+Route source is defined in `route.js` and used by app logic. Union Market was added as checkpoint 2 (2026-09-13) — it wasn't in the original 5-stop route. Coordinates for stops 2-6 were corrected from earlier rough placeholders to precise values on 2026-09-13; REI's coordinates were already correct and unchanged.
 
 ## Behavior summary
 - Start screen appears first, then the user begins the hunt (this tap also warms up camera permission).
@@ -99,7 +102,7 @@ Fresh validation succeeded for the current version:
 
 ## Notes for the next session
 - The route config is the source of truth in `route.js`.
-- Local persistence is enabled through `localStorage` and uses the key `geo-hunt-state-v3`.
+- Local persistence is enabled through `localStorage` and uses the key `geo-hunt-state-v3`. The route content version (`ROUTE_VERSION` in `app.js`, currently `union-market-6stop-v1`) must be bumped whenever checkpoints are added/removed/reordered — a mismatch causes saved progress to be discarded and rebuilt from `route.js`, which is what keeps stale progress from an old 5-stop save from misapplying to the new 6-stop route.
 - The debug mode is triggered via the query string `?debug=1`.
 - The debug console API is available at `window.geoHuntDebug`.
 - If you need to reset the route in dev, use `geoHuntDebug.reset()` or the reset button.
