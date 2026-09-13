@@ -8,7 +8,7 @@
       rel="stylesheet"
       href="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.css"
     />
-    <link rel="stylesheet" href="./styles.css?v=6" />
+    <link rel="stylesheet" href="./styles.css?v=7" />
   </head>
   <body>
     <div id="app">
@@ -39,6 +39,11 @@
 
       <div id="debugPanel" class="debug-panel hidden">
         <div class="debug-title">Debug</div>
+        <div class="debug-row">
+          <input id="debugStopInput" type="text" inputmode="numeric" placeholder="type: stop 1" />
+          <button id="debugStopButton" class="secondary small">Play full stop</button>
+        </div>
+        <div class="debug-hint">Plays the whole arrival for a stop: map fly-in → walking route → AR clue.</div>
         <div class="debug-row">
           <input id="debugLat" type="number" step="0.0001" placeholder="lat" />
           <input id="debugLng" type="number" step="0.0001" placeholder="lng" />
@@ -113,6 +118,6 @@
     ></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.js"></script>
     <script src="./route.js?v=6"></script>
-    <script src="./app.js?v=8"></script>
+    <script src="./app.js?v=9"></script>
   </body>
 </html>

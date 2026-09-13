@@ -24,7 +24,11 @@ let lastRouteFetchLocation = null;
 let lastRouteFetchCheckpointId = null;
 let routeFetchInFlight = false;
 let watchId = null;
+let playStopTimer = null;
 let arCameraStream = null;
+
+const STOP_PREVIEW_APPROACH_METERS = 120;
+const STOP_PREVIEW_ARRIVAL_DELAY_MS = 2600;
 const prefetchedModelUrls = new Set();
 
 const elements = {
@@ -54,6 +58,8 @@ const elements = {
   debugLat: document.getElementById('debugLat'),
   debugLng: document.getElementById('debugLng'),
   debugCheckpointInput: document.getElementById('debugCheckpointInput'),
+  debugStopInput: document.getElementById('debugStopInput'),
+  debugStopButton: document.getElementById('debugStopButton'),
   debugApplyButton: document.getElementById('debugApplyButton'),
   debugTestReiButton: document.getElementById('debugTestReiButton'),
   debugNextButton: document.getElementById('debugNextButton'),
@@ -656,6 +662,37 @@ function jumpToCheckpoint(index) {
   render();
 }
 
+function playStop(input) {
+  const match = String(input).match(/\d+/);
+  const stopNumber = match ? Number(match[0]) : NaN;
+  if (!Number.isInteger(stopNumber) || stopNumber < 1 || stopNumber > appState.checkpoints.length) {
+    console.warn(`Enter a stop number between 1 and ${appState.checkpoints.length}, e.g. "stop 3".`);
+    return;
+  }
+
+  clearTimeout(playStopTimer);
+
+  appState.currentCheckpointIndex = stopNumber - 1;
+  appState.phase = 'map';
+  elements.arOverlay.classList.add('hidden');
+  elements.victoryOverlay.classList.add('hidden');
+  elements.infoDrawer.classList.add('hidden');
+  persistProgress();
+
+  const checkpoint = getCurrentCheckpoint();
+  if (!checkpoint) return;
+
+  // Step 1: stand ~120 m north of the stop so the fly-in, walking route, geofence,
+  // and building highlight are all visible before arrival (approach is outside every radius).
+  const approachLat = checkpoint.lat + STOP_PREVIEW_APPROACH_METERS / 110540;
+  applyDebugLocation(approachLat, checkpoint.lng);
+
+  // Step 2: arrive inside the geofence, which auto-opens this stop's AR clue.
+  playStopTimer = setTimeout(() => {
+    applyDebugLocation(checkpoint.lat, checkpoint.lng);
+  }, STOP_PREVIEW_ARRIVAL_DELAY_MS);
+}
+
 function bindEvents() {
   if (DEBUG_MODE) {
     elements.debugPanel.classList.remove('hidden');
@@ -686,6 +723,12 @@ function bindEvents() {
       return;
     }
     applyDebugLocation(lat, lng);
+  });
+
+  const submitStop = () => playStop(elements.debugStopInput.value);
+  elements.debugStopButton.addEventListener('click', submitStop);
+  elements.debugStopInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') submitStop();
   });
 
   elements.debugTestReiButton.addEventListener('click', () => {
@@ -721,6 +764,7 @@ function init() {
 
 window.geoHuntDebug = {
   setLocation: applyDebugLocation,
+  stop: playStop,
   jumpToCheckpoint,
   nextCheckpoint: () => {
     if (!getCurrentCheckpoint()) return;
