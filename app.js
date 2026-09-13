@@ -23,6 +23,9 @@ let lastHighlightedCheckpointId = null;
 let lastRouteFetchLocation = null;
 let lastRouteFetchCheckpointId = null;
 let routeFetchInFlight = false;
+let lastRouteSummary = null;
+let lastAccuracy = null;
+let inRadiusStreak = 0;
 let watchId = null;
 let playStopTimer = null;
 let arCameraStream = null;
@@ -35,6 +38,8 @@ const elements = {
   checkpointTitle: document.getElementById('checkpointTitle'),
   checkpointHint: document.getElementById('checkpointHint'),
   distanceText: document.getElementById('distanceText'),
+  dirArrow: document.getElementById('dirArrow'),
+  recenterButton: document.getElementById('recenterButton'),
   startButton: document.getElementById('startButton'),
   resetButton: document.getElementById('resetButton'),
   statusPill: document.getElementById('statusPill'),
@@ -146,14 +151,14 @@ function setPhase(nextPhase) {
   render();
 }
 
-function geofenceCirclePolygon(checkpoint, points = 64) {
+function circlePolygon(lat, lng, radiusMeters, points = 64) {
   const coords = [];
-  const distanceX = checkpoint.radius / (111320 * Math.cos((checkpoint.lat * Math.PI) / 180));
-  const distanceY = checkpoint.radius / 110540;
+  const distanceX = radiusMeters / (111320 * Math.cos((lat * Math.PI) / 180));
+  const distanceY = radiusMeters / 110540;
 
   for (let i = 0; i <= points; i += 1) {
     const theta = (i / points) * (2 * Math.PI);
-    coords.push([checkpoint.lng + distanceX * Math.cos(theta), checkpoint.lat + distanceY * Math.sin(theta)]);
+    coords.push([lng + distanceX * Math.cos(theta), lat + distanceY * Math.sin(theta)]);
   }
 
   return {
@@ -162,10 +167,47 @@ function geofenceCirclePolygon(checkpoint, points = 64) {
   };
 }
 
-function createMapMarker(className, lng, lat) {
+function geofenceCirclePolygon(checkpoint, points = 64) {
+  return circlePolygon(checkpoint.lat, checkpoint.lng, checkpoint.radius, points);
+}
+
+const EMPTY_FEATURE = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[]] } };
+
+function updatePlayerAccuracy() {
+  if (!mapReady) return;
+  const accuracySource = map.getSource('player-accuracy');
+  if (!accuracySource) return;
+
+  const location = appState.playerLocation;
+  if (location && lastAccuracy && lastAccuracy > 0) {
+    accuracySource.setData(circlePolygon(location.lat, location.lng, lastAccuracy));
+  } else {
+    accuracySource.setData(EMPTY_FEATURE);
+  }
+}
+
+function createMapMarker(className, lng, lat, anchor = 'center') {
   const el = document.createElement('div');
   el.className = `map-marker ${className}`;
-  return new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
+  return new mapboxgl.Marker({ element: el, anchor }).setLngLat([lng, lat]).addTo(map);
+}
+
+function formatDistance(meters) {
+  return meters >= 1000 ? `${(meters / 1000).toFixed(1)} km` : `${Math.round(meters)} m`;
+}
+
+function formatDuration(seconds) {
+  return `${Math.max(1, Math.round(seconds / 60))} min`;
+}
+
+// Bearing from point A to point B in degrees clockwise from north.
+function bearingDegrees(lat1, lon1, lat2, lon2) {
+  const toRad = (value) => (value * Math.PI) / 180;
+  const dLon = toRad(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+    Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+  return (Math.atan2(y, x) * 180) / Math.PI;
 }
 
 function highlightCheckpointBuilding(checkpoint) {
@@ -187,6 +229,7 @@ function clearWalkingRoute() {
   if (routeSource) routeSource.setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: [] } });
   lastRouteFetchLocation = null;
   lastRouteFetchCheckpointId = null;
+  lastRouteSummary = null;
 }
 
 async function updateWalkingRoute(checkpoint, playerLocation) {
@@ -208,6 +251,8 @@ async function updateWalkingRoute(checkpoint, playerLocation) {
       routeSource.setData({ type: 'Feature', geometry: route.geometry });
       lastRouteFetchLocation = playerLocation;
       lastRouteFetchCheckpointId = checkpoint.id;
+      lastRouteSummary = { distance: route.distance, duration: route.duration };
+      renderDistance();
     }
   } catch (error) {
     console.warn('Could not fetch walking route:', error);
@@ -238,6 +283,7 @@ function updateMapForCheckpoint(checkpoint) {
   if (appState.playerLocation) {
     playerMarker.setLngLat([appState.playerLocation.lng, appState.playerLocation.lat]);
   }
+  updatePlayerAccuracy();
 
   if (appState.phase === 'map' && appState.playerLocation) {
     updateWalkingRoute(checkpoint, appState.playerLocation);
@@ -302,6 +348,20 @@ function renderMap() {
         paint: { 'line-color': BUILDING_HIGHLIGHT_COLOR, 'line-width': 2 }
       });
 
+      map.addSource('player-accuracy', { type: 'geojson', data: EMPTY_FEATURE });
+      map.addLayer({
+        id: 'player-accuracy-fill',
+        type: 'fill',
+        source: 'player-accuracy',
+        paint: { 'fill-color': '#4ec7ff', 'fill-opacity': 0.1 }
+      });
+      map.addLayer({
+        id: 'player-accuracy-line',
+        type: 'line',
+        source: 'player-accuracy',
+        paint: { 'line-color': '#4ec7ff', 'line-width': 1, 'line-opacity': 0.35 }
+      });
+
       map.addSource('walking-route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
       map.addLayer({
         id: 'walking-route-line',
@@ -316,8 +376,12 @@ function renderMap() {
       });
 
       map.on('idle', () => highlightCheckpointBuilding(getCurrentCheckpoint()));
+      map.on('rotate', renderDistance);
 
-      targetMarker = createMapMarker('marker-target', loadCheckpoint.lng, loadCheckpoint.lat);
+      targetMarker = createMapMarker('marker-target', loadCheckpoint.lng, loadCheckpoint.lat, 'bottom');
+      const targetPin = document.createElement('span');
+      targetPin.className = 'marker-pin';
+      targetMarker.getElement().appendChild(targetPin);
       const targetLabel = document.createElement('span');
       targetLabel.className = 'marker-label';
       targetLabel.textContent = loadCheckpoint.name;
@@ -334,6 +398,20 @@ function renderMap() {
   }
 
   if (mapReady) updateMapForCheckpoint(checkpoint);
+}
+
+function recenterMap() {
+  if (!map || !mapReady) return;
+  const checkpoint = getCurrentCheckpoint();
+  const location = appState.playerLocation;
+
+  if (checkpoint && location) {
+    const bounds = new mapboxgl.LngLatBounds([location.lng, location.lat], [location.lng, location.lat]);
+    bounds.extend([checkpoint.lng, checkpoint.lat]);
+    map.fitBounds(bounds, { padding: { top: 110, bottom: 90, left: 60, right: 60 }, maxZoom: 17, duration: 800 });
+  } else if (checkpoint) {
+    map.flyTo({ center: [checkpoint.lng, checkpoint.lat], zoom: 17, duration: 800 });
+  }
 }
 
 function renderStatusBadge() {
@@ -359,21 +437,45 @@ function setLocationHelp(message) {
   elements.locationHelpBanner.classList.remove('hidden');
 }
 
+function updateDirectionArrow(straightLine, location, checkpoint) {
+  const arrow = elements.dirArrow;
+  if (!arrow) return;
+
+  if (!location || !checkpoint || straightLine < 8) {
+    arrow.classList.add('hidden');
+    return;
+  }
+
+  arrow.classList.remove('hidden');
+  const bearing = bearingDegrees(location.lat, location.lng, checkpoint.lat, checkpoint.lng);
+  const mapBearing = map && mapReady ? map.getBearing() : 0;
+  arrow.style.transform = `rotate(${bearing - mapBearing}deg)`;
+}
+
 function renderDistance() {
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint) {
-    elements.distanceText.textContent = 'Distance: complete';
+    elements.distanceText.textContent = 'Arrived — hunt complete';
+    updateDirectionArrow(0, null, null);
     return;
   }
 
   const location = appState.playerLocation;
   if (!location) {
-    elements.distanceText.textContent = 'Distance: waiting for GPS…';
+    elements.distanceText.textContent = 'Locating you…';
+    updateDirectionArrow(0, null, null);
     return;
   }
 
-  const distance = haversineMeters(location.lat, location.lng, checkpoint.lat, checkpoint.lng);
-  elements.distanceText.textContent = `Distance: ${distance.toFixed(0)} m`;
+  const straightLine = haversineMeters(location.lat, location.lng, checkpoint.lat, checkpoint.lng);
+
+  if (lastRouteSummary && appState.phase === 'map') {
+    elements.distanceText.textContent = `${formatDuration(lastRouteSummary.duration)} · ${formatDistance(lastRouteSummary.distance)} walk`;
+  } else {
+    elements.distanceText.textContent = formatDistance(straightLine);
+  }
+
+  updateDirectionArrow(straightLine, location, checkpoint);
 }
 
 function renderCheckpointInfo() {
@@ -521,18 +623,48 @@ function resetProgress() {
   render();
 }
 
+function playArrivalMoment() {
+  if (navigator.vibrate) navigator.vibrate(60);
+  if (!targetMarker) return;
+  const el = targetMarker.getElement();
+  el.classList.remove('arrived');
+  void el.offsetWidth; // restart the CSS animation
+  el.classList.add('arrived');
+  setTimeout(() => el.classList.remove('arrived'), 1000);
+}
+
+function triggerArrival() {
+  inRadiusStreak = 0;
+  elements.infoDrawer.classList.add('hidden');
+  playArrivalMoment();
+  setPhase('ar_ready');
+}
+
 function evaluatePosition(position) {
-  const { latitude, longitude } = position.coords;
+  const { latitude, longitude, accuracy } = position.coords;
   appState.playerLocation = { lat: latitude, lng: longitude };
+
+  // Debug teleports have no accuracy; treat them as fully trusted so testing stays instant.
+  const isDebugFix = accuracy == null;
+  lastAccuracy = isDebugFix ? null : accuracy;
 
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint) return;
 
   const distance = haversineMeters(latitude, longitude, checkpoint.lat, checkpoint.lng);
+  const withinRadius = distance <= checkpoint.radius;
+  // Fire instantly when even the error margin sits inside the radius; otherwise require two
+  // consecutive in-radius fixes so a single wild GPS blip can't false-trigger. This debounces
+  // without ever blocking arrival, however poor the accuracy is.
+  const confidentlyInside = isDebugFix || distance + accuracy <= checkpoint.radius;
 
-  if (distance <= checkpoint.radius && appState.phase === 'map') {
-    elements.infoDrawer.classList.add('hidden');
-    setPhase('ar_ready');
+  if (appState.phase === 'map' && withinRadius) {
+    inRadiusStreak += 1;
+    if (confidentlyInside || inRadiusStreak >= 2) {
+      triggerArrival();
+    }
+  } else {
+    inRadiusStreak = 0;
   }
 
   persistProgress();
@@ -716,6 +848,7 @@ function bindEvents() {
   });
 
   elements.startButton.addEventListener('click', startHunt);
+  elements.recenterButton.addEventListener('click', recenterMap);
   elements.statusPill.addEventListener('click', () => {
     elements.infoDrawer.classList.toggle('hidden');
   });

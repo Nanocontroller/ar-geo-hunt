@@ -8,16 +8,28 @@
       rel="stylesheet"
       href="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.css"
     />
-    <link rel="stylesheet" href="./styles.css?v=8" />
+    <link rel="stylesheet" href="./styles.css?v=9" />
   </head>
   <body>
     <div id="app">
       <div id="map"></div>
 
       <button id="statusPill" class="status-pill">
+        <span id="dirArrow" class="dir-arrow hidden" aria-hidden="true">&#9650;</span>
         <span id="statusBadge" class="status-badge">Waiting for GPS</span>
         <span id="distanceText" class="distance">Distance: --</span>
         <span class="chevron">&#9662;</span>
+      </button>
+
+      <button id="recenterButton" class="recenter-button" aria-label="Recenter map on you and the target">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" fill="currentColor" />
+          <circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <line x1="12" y1="1.5" x2="12" y2="5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <line x1="12" y1="19" x2="12" y2="22.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <line x1="1.5" y1="12" x2="5" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <line x1="19" y1="12" x2="22.5" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
       </button>
 
       <div id="locationHelpBanner" class="location-help-banner hidden">
@@ -118,6 +130,6 @@
     ></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.js"></script>
     <script src="./route.js?v=6"></script>
-    <script src="./app.js?v=10"></script>
+    <script src="./app.js?v=11"></script>
   </body>
 </html>
