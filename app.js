@@ -3,8 +3,11 @@ const ROUTE_VERSION = 'union-market-6stop-v1';
 const ROUTE = window.unionMarketRoute || [];
 const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibmFub2NvbnRyb2xsZXIiLCJhIjoiY21meXVoZzZnMHBkaDJ3cHpraGVwaGZ5aSJ9.qV5HyHZDbI0uEvjS6CmGKw';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibmFub2NvbnRyb2xsZXIiLCJhIjoiY211MDhnMnUzMHpudjJ3cG1pZGdmc3NrZSJ9.92dLSVjzLs9lR8UFr2GKbQ';
 const MAPBOX_STYLE = 'mapbox://styles/nanocontroller/cmfywcwmu004c01qtfpkpbgqd';
+const BUILDING_HIGHLIGHT_COLOR = '#2dd4ee';
+const WALKING_ROUTE_COLOR = '#4ec7ff';
+const ROUTE_REFRESH_DISTANCE_METERS = 15;
 
 const unionMarketCheckpoints = ROUTE.length
   ? ROUTE.map((checkpoint) => ({ ...checkpoint, solved: false, solvedAt: null }))
@@ -16,6 +19,10 @@ let mapReady = false;
 let playerMarker;
 let targetMarker;
 let lastRenderedCheckpointId = null;
+let lastHighlightedCheckpointId = null;
+let lastRouteFetchLocation = null;
+let lastRouteFetchCheckpointId = null;
+let routeFetchInFlight = false;
 let watchId = null;
 let arCameraStream = null;
 const prefetchedModelUrls = new Set();
@@ -155,6 +162,54 @@ function createMapMarker(className, lng, lat) {
   return new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
 }
 
+function highlightCheckpointBuilding(checkpoint) {
+  if (!mapReady || !checkpoint || checkpoint.id === lastHighlightedCheckpointId) return;
+
+  const buildingSource = map.getSource('checkpoint-building');
+  if (!buildingSource) return;
+
+  const point = map.project([checkpoint.lng, checkpoint.lat]);
+  const features = map.queryRenderedFeatures(point, { layers: ['buildings-lookup'] });
+  if (!features.length) return;
+
+  lastHighlightedCheckpointId = checkpoint.id;
+  buildingSource.setData({ type: 'FeatureCollection', features: [features[0]] });
+}
+
+function clearWalkingRoute() {
+  const routeSource = map.getSource('walking-route');
+  if (routeSource) routeSource.setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: [] } });
+  lastRouteFetchLocation = null;
+  lastRouteFetchCheckpointId = null;
+}
+
+async function updateWalkingRoute(checkpoint, playerLocation) {
+  if (!mapReady || !checkpoint || !playerLocation || routeFetchInFlight) return;
+
+  const movedFar = !lastRouteFetchLocation ||
+    haversineMeters(lastRouteFetchLocation.lat, lastRouteFetchLocation.lng, playerLocation.lat, playerLocation.lng) > ROUTE_REFRESH_DISTANCE_METERS;
+  const checkpointChanged = checkpoint.id !== lastRouteFetchCheckpointId;
+  if (!movedFar && !checkpointChanged) return;
+
+  routeFetchInFlight = true;
+  try {
+    const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${playerLocation.lng},${playerLocation.lat};${checkpoint.lng},${checkpoint.lat}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    const route = data.routes && data.routes[0];
+    const routeSource = map.getSource('walking-route');
+    if (route && routeSource) {
+      routeSource.setData({ type: 'Feature', geometry: route.geometry });
+      lastRouteFetchLocation = playerLocation;
+      lastRouteFetchCheckpointId = checkpoint.id;
+    }
+  } catch (error) {
+    console.warn('Could not fetch walking route:', error);
+  } finally {
+    routeFetchInFlight = false;
+  }
+}
+
 function updateMapForCheckpoint(checkpoint) {
   targetMarker.setLngLat([checkpoint.lng, checkpoint.lat]);
 
@@ -163,11 +218,19 @@ function updateMapForCheckpoint(checkpoint) {
 
   if (checkpoint.id !== lastRenderedCheckpointId) {
     lastRenderedCheckpointId = checkpoint.id;
+    lastHighlightedCheckpointId = null;
+    clearWalkingRoute();
     map.flyTo({ center: [checkpoint.lng, checkpoint.lat], zoom: 17, duration: 1200 });
   }
 
   if (appState.playerLocation) {
     playerMarker.setLngLat([appState.playerLocation.lng, appState.playerLocation.lat]);
+  }
+
+  if (appState.phase === 'map' && appState.playerLocation) {
+    updateWalkingRoute(checkpoint, appState.playerLocation);
+  } else {
+    clearWalkingRoute();
   }
 }
 
@@ -184,6 +247,7 @@ function renderMap() {
       zoom: 17
     });
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+    window.__debugMap = map;
 
     map.on('load', () => {
       const loadCheckpoint = getCurrentCheckpoint();
@@ -202,6 +266,44 @@ function renderMap() {
         source: 'geofence',
         paint: { 'line-color': '#39d98a', 'line-width': 2 }
       });
+
+      map.addSource('mapbox-buildings-lookup', { type: 'vector', url: 'mapbox://mapbox.mapbox-streets-v8' });
+      map.addLayer({
+        id: 'buildings-lookup',
+        type: 'fill',
+        source: 'mapbox-buildings-lookup',
+        'source-layer': 'building',
+        paint: { 'fill-opacity': 0 }
+      });
+
+      map.addSource('checkpoint-building', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      map.addLayer({
+        id: 'checkpoint-building-fill',
+        type: 'fill',
+        source: 'checkpoint-building',
+        paint: { 'fill-color': BUILDING_HIGHLIGHT_COLOR, 'fill-opacity': 0.45 }
+      });
+      map.addLayer({
+        id: 'checkpoint-building-outline',
+        type: 'line',
+        source: 'checkpoint-building',
+        paint: { 'line-color': BUILDING_HIGHLIGHT_COLOR, 'line-width': 2 }
+      });
+
+      map.addSource('walking-route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
+      map.addLayer({
+        id: 'walking-route-line',
+        type: 'line',
+        source: 'walking-route',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': WALKING_ROUTE_COLOR,
+          'line-width': 4,
+          'line-dasharray': [0.2, 1.5]
+        }
+      });
+
+      map.on('idle', () => highlightCheckpointBuilding(getCurrentCheckpoint()));
 
       targetMarker = createMapMarker('marker-target', loadCheckpoint.lng, loadCheckpoint.lat);
       playerMarker = createMapMarker('marker-player', loadCheckpoint.lng, loadCheckpoint.lat);
