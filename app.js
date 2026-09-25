@@ -7,8 +7,8 @@ const MAPBOX_TOKEN = 'pk.eyJ1IjoibmFub2NvbnRyb2xsZXIiLCJhIjoiY211MDhnMnUzMHpudjJ
 const MAPBOX_STYLE = 'mapbox://styles/nanocontroller/cmfywcwmu004c01qtfpkpbgqd';
 // Map palette (rose-gold, consistent across light/dark UI themes since the Mapbox style is dark).
 // Destination things = gold, you/your-path = rose.
-const GOLD = '#eab35e';
-const ROSE = '#ff8fab';
+const GOLD = '#ffca3a';
+const ROSE = '#ff5c8f';
 const BUILDING_HIGHLIGHT_COLOR = GOLD;
 const WALKING_ROUTE_COLOR = ROSE;
 const GEOFENCE_COLOR = GOLD;
@@ -655,8 +655,8 @@ function launchConfetti() {
     piece.className = 'confetti-piece';
     piece.style.left = `${Math.random() * 100}%`;
     piece.style.background = colors[i % colors.length];
-    piece.style.animationDelay = `${Math.random() * 0.7}s`;
-    piece.style.animationDuration = `${2.4 + Math.random() * 1.8}s`;
+    piece.style.animationDelay = `${Math.random() * 1.2}s`;
+    piece.style.animationDuration = `${7.2 + Math.random() * 5.4}s`;
     container.appendChild(piece);
   }
 }
