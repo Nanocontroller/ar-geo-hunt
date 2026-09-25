@@ -9,7 +9,7 @@
   --on-accent: #2a0a16;
   --warning: #ffc24d;
   --danger: #ff8f8f;
-  --text: #f5f2fd;
+  --text: #d7dbe4;
   --muted: #bcc1e6;
   --shadow: rgba(0, 0, 0, 0.45);
 }
@@ -33,6 +33,11 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Titles use the bright accent (same pink as the buttons); body text is the light-gray --text. */
+h1, h2, h3 {
+  color: var(--accent);
 }
 
 html, body {
@@ -415,7 +420,7 @@ h1 {
 .intro-card p,
 .victory-card p {
   margin: 0 0 18px 0;
-  color: var(--muted);
+  color: var(--text);
   line-height: 1.5;
 }
 
@@ -486,7 +491,7 @@ model-viewer {
 
 .ar-content p {
   margin: 0;
-  color: var(--muted);
+  color: var(--text);
   line-height: 1.55;
   white-space: pre-line;
 }
