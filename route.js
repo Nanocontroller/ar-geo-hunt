@@ -7,8 +7,8 @@ window.unionMarketRoute = [
     radius: 20,
     bloom: { strength: 1.1, threshold: 0.8, radius: 0.6 },
     clue: {
-      title: 'Interrogations & Bad Spritzes',
-      text: `Where it all started. I drank a terrible spritz, you had a beer and generously paid because I had no ID. I also interrogated you with a million questions. Time to move.`,
+      title: 'Interrogations & Bad Drinks',
+      text: `Where it all started. I drank a terrible spritzer, you had a beer and generously paid because I had no ID. I also interrogated you with a million questions. Time to move.`,
       modelUrl: './assets/models/union-market.glb'
     }
   },
@@ -34,7 +34,7 @@ window.unionMarketRoute = [
     bloom: { strength: 1.1, threshold: 0.8, radius: 0.6 },
     clue: {
       title: 'Bold Moves Only',
-      text: `Over my cider and your IPA, the flirting leveled up. I told you I wanted to kiss you, your debit card crashed until Evan saved the day, and you smoothly invited yourself to my place. Iconic.`,
+      text: `Over my cider and your IPA, the flirting leveled up. I told you I wanted to kiss you, your debit card crashed until Evan saved the day, and you smoothly invited yourself to my place. Iconic!`,
       modelUrl: './assets/models/red_bear_brewing.glb'
     }
   },
@@ -47,7 +47,7 @@ window.unionMarketRoute = [
     bloom: { strength: 1.1, threshold: 0.8, radius: 0.6 },
     clue: {
       title: 'The Setup',
-      text: `We made it. I showed off the view, you stayed, and the rest is history. This is where the real relationship actually began.`,
+      text: `We made it. I showed off the view, you stayed, and the rest is history. I ♥️ YOU`,
       modelUrl: './assets/models/the_rigby.glb'
     }
   },
@@ -61,8 +61,8 @@ window.unionMarketRoute = [
     final: true,
     bloom: { strength: 1.4, threshold: 0.7, radius: 0.7 },
     clue: {
-      title: 'Final Checkpoint: Euonia',
-      text: `We survived the chaos of date one, and now we have a whole world left to discover.\nJess, will you continue with me and explore our lives and the world together?\nHappy Anniversary!`,
+      title: 'Thank you querida!',
+      text: `Time flies when you're having fun. Now we have a whole world left to discover.\nHappy Anniversary!`,
       modelUrl: './assets/models/the_world.glb'
     }
   }

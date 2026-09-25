@@ -933,7 +933,10 @@ function bindEvents() {
     resetProgress();
     elements.introOverlay.classList.remove('hidden');
   });
-  elements.resetButton.addEventListener('click', resetProgress);
+  elements.resetButton.addEventListener('click', () => {
+    const confirmed = window.confirm('Start over? This erases your progress and sends you back to the first stop.');
+    if (confirmed) resetProgress();
+  });
 
   elements.debugApplyButton.addEventListener('click', () => {
     const lat = elements.debugLat.value;
