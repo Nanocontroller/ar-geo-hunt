@@ -9,106 +9,67 @@ One place to fine-tune all wording and see which 3D model belongs to each stop.
 After editing any of `route.js`, `styles.css`, or `app.js`, bump the `?v=N` number on that file in `index.html` so phones don't load a stale cached version.
 
 ---
+Here is the updated layout for your `CONTENT.md` and `route.js` files, making **Euonia** the grand finale where you ask her to keep exploring the world with you.
 
-## 1. Stops — locations, pop-ups, and models
-
-Edit these in `route.js`. Each stop's pop-up shows a **title** and a **message** when the player arrives.
-
-
-### Stop 1 — Union Market
-- **Location:** 38.908306, -76.997250 · arrival radius 20 m
-- **3D model:** `assets/models/union-market.glb`
-- **Pop-up title:** Our first sight!
-- **Pop-up message:** You made it to home base. It all started here. Forgotten I.D., lots of questions,too mich noise, and the desire to learn more about you.... Next hint: let's go to a more quiet place.
-
-### Stop 2 — La Cosecha
-- **Location:** 38.908778, -76.999444 · arrival radius 18 m
-- **3D model:** `assets/models/la_cosecha.glb`
-- **Pop-up title:** Checkpoint 2
-- **Pop-up message:** This is the part where the mission gets delicious. Buy me a glass of orange wine, and spark the moment, I'll buy you some Malbec. Then find the next clue and pretend you are not already planning your next drink.  Nuestra etapa de querer ser sofisticadas duró exactamente lo que tardaron en decirnos 'estamos cerrando'. Pedir una copa de vino y que te corran de inmediato fue claramente una señal del universo para acelerar las cosas.
-
-### Stop 3 — Red Bear Brewing
-- **Location:** 38.905570, -77.002481 · arrival radius 18 m
-- **3D model:** `assets/models/red_bear_brewing.glb`
-- **Pop-up title:** Checkpoint 5
-- **Pop-up message:** The plot thickens. You have survived the adventure, the snacks, and the walking. 
-El nivel crítico. Tuvimos miradas, una tarjeta de débito rebelde que necesitó el rescate de Evan por teléfono, y yo soltando un 'te quiero besar'. Lo más importante de esta parada: tu audacia impecable para autoinvitarte a mi departamento. The final prize is not far away — and it is the kind of place you are allowed to invite yourselves to.
-
-### Stop 4 — The Rigby
-- **Location:** 38.906031, -77.002184 · arrival radius 20 m
-- **3D model:** `assets/models/the_rigby.glb`
-- **Pop-up title:** A pleasant surprise
-- **Pop-up message:**  "Yes, we absolutely can invite ourselves here." Mission complete — you found the anniversary prize. El lugar de la vista espectacular y el verdadero inicio de nuestra historia. De sobrevivir pizzas crudas y desalojos, a 2 años increíbles juntas. 
-
-### Stop 5 -take me for brunch
-- **Location: TBD
-- **3D model:** `assets/models/the_globe.glb`  ⚠️ not added yet — drop this file in `assets/models/` or the finale model won't show
-- **Pop-up title:** And the adventure continues
-- **Pop-up message:** Are you willining to continue the adventure with me and expand beyon NoMa to the world? 
-I love you!
-
-### Model → stop cheat sheet
-The file numbers do **not** match the stop numbers. To swap a stop's model, either replace the file below with your own (same name) or change its `modelUrl` in `route.js`.
-
-| Stop | Name | Model file |
-|---|---|---|
-| 1 | Union Market | `union-market.glb` |
-| 2 | La Cosecha | `la_cosecha.glb` |
-| 3 | Red Bear Brewing | `red_bear_brewing.glb` |
-| 4 | The Rigby | `the_rigby.glb` |
-| 5 | Final | `the_globe.glb` ⚠️ missing |
-
-
-Models are `.glb` files in `assets/models/`. iOS "place in your space" (Quick Look) auto-converts to USDZ on the fly — no separate file needed.
+I kept the spinning holographic globe model for this stop, as it perfectly matches the theme of exploring the world together!
 
 ---
 
-## 2. Screen copy
+### 📍 1. Stops — locations, pop-ups, and models (`route.js` & `CONTENT.md`)
 
-Edit these in `index.html`.
+**Stop 1 — Union Market**
+
+* **Location:** 38.908306, -76.997250 · arrival radius 20 m
+* **3D model:** `assets/models/union-market.glb`
+* **Pop-up title:** Interrogations & Bad Spritzes
+* **Pop-up message:** Where it all started. I drank a terrible spritz, you had a beer and generously paid because I had no ID. I also interrogated you with a million questions. Time to move.
+
+**Stop 2 — La Cosecha / Grand Cata**
+
+* **Location:** 38.908778, -76.999444 · arrival radius 18 m
+* **3D model:** `assets/models/la_cosecha.glb`
+* **Pop-up title:** Would you buy me a drink?
+* **Pop-up message:** I ordered that weird orange wine you absolutely hated, and you stuck to a solid Malbec. Then we got kicked out almost immediately. The universe was clearly telling us to hurry up.
+
+**Stop 3 — La Cervecería**
+
+* *(Keep your existing coordinates/radius here)*
+* **3D model:** `assets/models/red_bear_brewing.glb`
+* **Pop-up title:** Bold Moves Only
+* **Pop-up message:** Over my cider and your IPA, the flirting leveled up. I told you I wanted to kiss you, your debit card crashed until Evan saved the day, and you smoothly invited yourself to my place. Iconic.
+
+**Stop 4 — The Apartment**
+
+* *(Keep your existing coordinates/radius here)*
+* **3D model:** `assets/models/the_rigby.glb`
+* **Pop-up title:** The Setup
+* **Pop-up message:** We made it. I showed off the view, you stayed, and the rest is history. This is where the real relationship actually began.
+
+**Stop 5 — Euonia (Final Stop)**
+
+* *(Insert Euonia's coordinates here)* · arrival radius 20 m
+* **3D model:** `assets/models/the_world.glb` *(The holographic spinning globe)*
+* **Pop-up title:** Final Checkpoint: Euonia
+* **Pop-up message:** We survived the chaos of date one, and now we have a whole world left to discover. 
+Jess, will you continue with me and explore our lives and the world together? 
+Happy Anniversary!
+
+---
+
+### 📱 2. Screen copy (`index.html` & `CONTENT.md`)
 
 **Opening screen (intro)**
-- Eyebrow: 2 year Anniversary Mission
-- Title: Operation: Make It a Memory
-- Paragraph 1: Tinder, date of chaos and romance. 
-Bienvenida, Jess. Tu misión es simple: seguir las coordenadas, recordar cómo sobrevivimos a nuestra primera cita sin identificaciones válidas, tarjetas de credito negadas y llegar a la sorpresa final.
 
-- Paragraph 2: Stay silly, and arrive at the final surprise without getting too distracted by my presence.The final prize may be a new plan. It may be a very good excuse to invite yourselves somewhere.
-- Button: Begin the adventure!
+* **Eyebrow:** 2-Year Anniversary
+* **Title:** Tinder, a date of chaos and romance
+* **Paragraph 1:** Welcome, Jess. Your mission is simple: follow the coordinates, remember how we survived our first date without valid IDs or working debit cards, and make it to the final surprise.
+* **Paragraph 2:** Stay silly, and try to arrive at the final surprise without getting too distracted by my presence. The final prize may be a new plan... or it may be a very good excuse to invite yourself over again.
+* **Button:** Begin the adventure!
 
+**Victory screen (When she closes the Euonia pop-up)**
 
+**Eyebrow:** Happy 2-Year Anniversary
+**Title:** We survived the first date chaos. Now, will you accept the ultimate challenge to explore the rest of the world with me undefinetly?
+**Button:** Yes, I'm in!
 
-**Info drawer** (tap the status pill)
-- Eyebrow: Union Market DC Adventure
-- Reset button: Reset Progress
-
-**AR clue overlay**
-- Label: AR Clue
-- Close button: Close & continue
-
-**Victory screen**
-- Eyebrow: Happy 2 year Anniversary
-- Title: I love you and challeng you to stay with me!
-- Button: Play again
-
-**Other buttons**
-- Start Hunt
-
----
-
-## 3. Status & system messages
-
-Edit these in `app.js`. Mostly automatic — usually no need to change.
-
-**Status pill (by phase)**
-- Waiting for GPS · Tracking checkpoint · AR clue ready · Hunt complete
-
-**Distance line**
-- "Locating you…" (no GPS yet)
-- "6 min · 450 m walk" (walking ETA + distance)
-- "120 m" (straight-line fallback)
-- "Arrived — hunt complete"
-
-**Victory text (auto):** "You solved 6 of 6 checkpoints and completed the Union Market route."
-
-**Location-permission help (shown if GPS is blocked):** "Safari may be blocking location. Open Settings → Safari → Websites → Location, then retry." (plus a couple of similar variants for denied/blocked states)
+*(The rest of the UI and system messages remain exactly the same as your previous setup!)*

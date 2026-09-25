@@ -131,6 +131,13 @@ function getCurrentCheckpoint() {
   return appState.checkpoints[appState.currentCheckpointIndex];
 }
 
+// The final stop hides its name ("???") until it's solved, then reveals it — keeps the finale a surprise.
+function checkpointDisplayName(checkpoint) {
+  if (!checkpoint) return '';
+  if (checkpoint.final && checkpoint.solved && checkpoint.revealName) return checkpoint.revealName;
+  return checkpoint.name;
+}
+
 function haversineMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const toRad = (value) => (value * Math.PI) / 180;
@@ -270,7 +277,7 @@ function setTargetLabel(name) {
 
 function updateMapForCheckpoint(checkpoint) {
   targetMarker.setLngLat([checkpoint.lng, checkpoint.lat]);
-  setTargetLabel(checkpoint.name);
+  setTargetLabel(checkpointDisplayName(checkpoint));
 
   const geofenceSource = map.getSource('geofence');
   if (geofenceSource) geofenceSource.setData(geofenceCirclePolygon(checkpoint));
@@ -488,7 +495,7 @@ function renderCheckpointInfo() {
     return;
   }
 
-  elements.checkpointTitle.textContent = checkpoint.name;
+  elements.checkpointTitle.textContent = checkpointDisplayName(checkpoint);
   elements.checkpointHint.textContent = checkpoint.clue.text;
 }
 
@@ -501,7 +508,7 @@ function renderProgressList() {
       const label = checkpoint.solved ? 'Solved' : 'Locked';
       return `
         <li class="${completeClass}">
-          <span>${checkpoint.name}</span>
+          <span>${checkpointDisplayName(checkpoint)}</span>
           <span>${label}</span>
         </li>
       `;

@@ -30,7 +30,7 @@ A mobile-first, install-free browser scavenger hunt for a DC anniversary route. 
 | `docs/FIELD_TESTING.md` | How to test the whole flow on a real phone without traveling |
 
 ## The route
-Defined in `route.js`. Current stops (5): Union Market → La Cosecha → Red Bear Brewing → The Rigby → **Final**. Each stop has coordinates, a geofence radius, a 3D model, per-stop bloom settings, and clue text. The last stop (`final: true`) is a wrap-up finale modal on a solid backdrop (currently geofenced at a placeholder location until the real spot is set).
+Defined in `route.js`. Current stops (5): Union Market → La Cosecha → La Cervecería → The Apartment → **Final Stop (Euonia)**. Each stop has coordinates, a geofence radius, a 3D model, per-stop bloom settings, and clue text. The last stop (`final: true`) is a wrap-up finale modal on a solid backdrop (a spinning globe + a proposal to keep exploring the world together).
 
 `ROUTE_VERSION` in `app.js` (`noma-5stop-final-v1`) is bumped whenever stops are added/removed/reordered so stale saved progress is discarded and rebuilt from `route.js`.
 
