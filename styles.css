@@ -420,6 +420,13 @@ h1 {
   margin: 4px auto 0;
 }
 
+/* Center the "Start over" button inside the info drawer too. */
+.info-drawer .ghost {
+  display: block;
+  width: fit-content;
+  margin: 10px auto 0;
+}
+
 .intro-card h2,
 .victory-card h2 {
   margin: 0 0 12px 0;
@@ -493,14 +500,17 @@ model-viewer {
   background: rgba(5, 12, 18, 0.96);
 }
 
+/* The AR bar is always dark (over the camera / finale backdrop), so its text is
+   fixed light + pink regardless of the light/dark theme. */
 .ar-content h2 {
   margin: 0 0 10px 0;
   font-size: 1.4rem;
+  color: #ff6f9c;
 }
 
 .ar-content p {
   margin: 0;
-  color: var(--text);
+  color: #e7eaf2;
   line-height: 1.55;
   white-space: pre-line;
 }
@@ -520,7 +530,6 @@ model-viewer {
 }
 
 .ar-overlay.finale .ar-content p {
-  color: var(--text);
   font-size: 1.05rem;
 }
 
