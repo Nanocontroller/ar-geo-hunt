@@ -8,7 +8,15 @@
       rel="stylesheet"
       href="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.css"
     />
-    <link rel="stylesheet" href="./styles.css?v=9" />
+    <link rel="stylesheet" href="./styles.css?v=10" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.js",
+          "three/": "https://cdn.jsdelivr.net/npm/three@0.172.0/"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="app">
@@ -43,7 +51,7 @@
         <div id="checkpointHint" class="hint">Start the hunt to begin tracking your position.</div>
         <div class="progress-header">
           <span>Progress</span>
-          <span id="progressCount">0 / 6</span>
+          <span id="progressCount">0 / 5</span>
         </div>
         <ul id="progressList" class="progress-list"></ul>
         <button id="resetButton" class="ghost small">Reset Progress</button>
@@ -64,7 +72,7 @@
           <input id="debugCheckpointInput" type="number" min="1" step="1" placeholder="jump to checkpoint #" />
         </div>
         <div class="debug-actions">
-          <button id="debugTestReiButton" class="secondary small">Test REI geofence</button>
+          <button id="debugTestReiButton" class="secondary small">Test stop 1</button>
           <button id="debugApplyButton" class="secondary small">Apply fake location</button>
           <button id="debugNextButton" class="ghost small">Skip to next</button>
           <button id="debugJumpButton" class="ghost small">Jump</button>
@@ -79,23 +87,25 @@
 
     <div id="introOverlay" class="intro-overlay">
       <div class="intro-card">
-        <div class="eyebrow">Anniversary Mission</div>
+        <div class="eyebrow">2 Year Anniversary Mission</div>
         <h2>Operation: Make It a Memory</h2>
         <p>
-          Welcome, agent of chaos and romance. Your mission is simple: wander through Union Market,
-          follow the clues, stay silly, and arrive at the final surprise without getting too distracted by snacks.
+          Tinder, date of chaos and romance. Bienvenida, Jess. Tu misión es simple: seguir las coordenadas,
+          recordar cómo sobrevivimos a nuestra primera cita sin identificaciones válidas ni tarjetas de crédito,
+          y llegar a la sorpresa final.
         </p>
         <p>
-          The final prize is hidden somewhere delightful. It may be a bar. It may be a plan. It may be a very good excuse to invite yourselves somewhere.
+          Stay silly, and arrive at the final surprise without getting too distracted by my presence.
+          The final prize may be a new plan. It may be a very good excuse to invite yourselves somewhere.
         </p>
-        <button id="beginAdventureButton" class="primary">Begin the adventure</button>
+        <button id="beginAdventureButton" class="primary">Begin the adventure!</button>
       </div>
     </div>
 
     <div id="victoryOverlay" class="victory-overlay hidden" aria-live="polite">
       <div class="victory-card">
-        <div class="eyebrow">Mission complete</div>
-        <h2>Union Market mission cleared</h2>
+        <div class="eyebrow">Happy 2 Year Anniversary</div>
+        <h2>I love you and challenge you to stay with me!</h2>
         <p id="victoryText">You solved every checkpoint and completed the hunt.</p>
         <button id="playAgainButton" class="primary">Play again</button>
       </div>
@@ -113,23 +123,27 @@
         ar-modes="webxr scene-viewer quick-look"
         camera-controls
         autoplay
+        environment-image="neutral"
+        tone-mapping="aces"
         shadow-intensity="1"
         touch-action="pan-y"
-        src="./assets/models/01.glb"
+        src="./assets/models/union-market.glb"
         alt="AR clue object"
-      ></model-viewer>
+      >
+        <effect-composer render-mode="quality">
+          <bloom-effect id="bloomEffect" strength="1.1" threshold="0.8" radius="0.6"></bloom-effect>
+        </effect-composer>
+      </model-viewer>
       <div class="ar-content">
         <h2 id="clueTitle">Clue unlocked</h2>
         <p id="clueText">Use the AR object to reveal the next hidden message.</p>
       </div>
     </div>
 
-    <script
-      type="module"
-      src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"
-    ></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer-module.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.js"></script>
-    <script src="./route.js?v=6"></script>
-    <script src="./app.js?v=11"></script>
+    <script src="./route.js?v=7"></script>
+    <script src="./app.js?v=12"></script>
   </body>
 </html>

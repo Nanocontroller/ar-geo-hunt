@@ -468,6 +468,26 @@ model-viewer {
   margin: 0;
   color: var(--muted);
   line-height: 1.55;
+  white-space: pre-line;
+}
+
+/* Finale (final stop): a wrap-up modal on a solid backdrop instead of the live camera. */
+.ar-overlay.finale {
+  background: radial-gradient(circle at 50% 28%, #1c2c4d 0%, #0a1120 72%);
+}
+
+.ar-overlay.finale .ar-camera-feed {
+  display: none;
+}
+
+.ar-overlay.finale .ar-content {
+  background: transparent;
+  text-align: center;
+}
+
+.ar-overlay.finale .ar-content p {
+  color: var(--text);
+  font-size: 1.05rem;
 }
 
 .map-marker {

@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'geo-hunt-state-v3';
-const ROUTE_VERSION = 'union-market-6stop-v1';
+const ROUTE_VERSION = 'noma-5stop-final-v1';
 const ROUTE = window.unionMarketRoute || [];
 const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
 
@@ -47,6 +47,8 @@ const elements = {
   arOverlay: document.getElementById('arOverlay'),
   arCameraVideo: document.getElementById('arCameraVideo'),
   modelViewer: document.getElementById('modelViewer'),
+  bloomEffect: document.getElementById('bloomEffect'),
+  arLabel: document.getElementById('arLabel'),
   clueTitle: document.getElementById('clueTitle'),
   clueText: document.getElementById('clueText'),
   closeArButton: document.getElementById('closeArButton'),
@@ -530,6 +532,51 @@ function stopArCamera() {
   elements.arCameraVideo.srcObject = null;
 }
 
+const AR_EMISSIVE_BOOST = 1.8;
+
+// Force a mirror-chrome look (metalness 1, roughness 0) on every material, and loop the clip.
+// Fires on each model-viewer 'load', i.e. every time a stop's model finishes loading.
+function onModelLoaded() {
+  const mv = elements.modelViewer;
+  const model = mv && mv.model;
+  if (model && model.materials) {
+    model.materials.forEach((material) => {
+      try {
+        material.pbrMetallicRoughness.setMetallicFactor(1);
+        material.pbrMetallicRoughness.setRoughnessFactor(0);
+      } catch (error) {
+        console.warn('Could not set metallic/roughness on a material:', error);
+      }
+    });
+  }
+  if (mv && typeof mv.play === 'function' && mv.availableAnimations && mv.availableAnimations.length) {
+    mv.play({ repetitions: Infinity });
+  }
+}
+
+function applyBloomForCheckpoint(checkpoint) {
+  const bloom = elements.bloomEffect;
+  if (!bloom || !checkpoint || !checkpoint.bloom) return;
+  bloom.strength = checkpoint.bloom.strength;
+  bloom.threshold = checkpoint.bloom.threshold;
+  bloom.radius = checkpoint.bloom.radius;
+}
+
+// Bloom can't run inside an AR session, so boost emissive strength while presenting to compensate.
+function setArEmissiveBoost(active) {
+  const model = elements.modelViewer && elements.modelViewer.model;
+  if (!model || !model.materials) return;
+  model.materials.forEach((material) => {
+    try {
+      if (typeof material.setEmissiveStrength === 'function') {
+        material.setEmissiveStrength(active ? AR_EMISSIVE_BOOST : 1);
+      }
+    } catch (error) {
+      /* emissive strength unsupported on this material — ignore */
+    }
+  });
+}
+
 function prefetchNextModel() {
   const nextCheckpoint = appState.checkpoints[appState.currentCheckpointIndex + 1];
   if (!nextCheckpoint || prefetchedModelUrls.has(nextCheckpoint.clue.modelUrl)) return;
@@ -543,23 +590,38 @@ function renderAR() {
   if (!checkpoint || appState.phase !== 'ar_ready') {
     stopArCamera();
     elements.arOverlay.classList.add('hidden');
+    elements.arOverlay.classList.remove('finale');
     return;
   }
 
+  const isFinal = Boolean(checkpoint.final);
+  elements.arOverlay.classList.toggle('finale', isFinal);
   elements.arOverlay.classList.remove('hidden');
-  startArCamera();
-  elements.modelViewer.setAttribute('src', checkpoint.clue.modelUrl);
+
+  // The finale is a wrap-up modal on a solid backdrop, not a live-camera reveal.
+  if (isFinal) {
+    stopArCamera();
+  } else {
+    startArCamera();
+  }
+
+  elements.arLabel.textContent = isFinal ? 'Final surprise' : 'AR Clue';
+  elements.closeArButton.textContent = isFinal ? 'Finish' : 'Close & continue';
+
+  if (elements.modelViewer.getAttribute('src') !== checkpoint.clue.modelUrl) {
+    elements.modelViewer.setAttribute('src', checkpoint.clue.modelUrl);
+  }
+  applyBloomForCheckpoint(checkpoint);
   elements.clueTitle.textContent = checkpoint.clue.title;
   elements.clueText.textContent = checkpoint.clue.text;
   prefetchNextModel();
 }
 
 function renderVictoryState() {
-  const completed = appState.checkpoints.filter((checkpoint) => checkpoint.solved).length;
   const total = appState.checkpoints.length;
 
   if (appState.phase === 'complete') {
-    elements.victoryText.textContent = `You solved ${completed} of ${total} checkpoints and completed the Union Market route.`;
+    elements.victoryText.textContent = `You made it through all ${total} stops. The adventure continues — I love you.`;
     elements.victoryOverlay.classList.remove('hidden');
   } else {
     elements.victoryOverlay.classList.add('hidden');
@@ -849,6 +911,13 @@ function bindEvents() {
 
   elements.startButton.addEventListener('click', startHunt);
   elements.recenterButton.addEventListener('click', recenterMap);
+
+  elements.modelViewer.addEventListener('load', onModelLoaded);
+  elements.modelViewer.addEventListener('ar-status', (event) => {
+    const status = event.detail && event.detail.status;
+    if (status === 'session-started') setArEmissiveBoost(true);
+    else if (status === 'not-presenting') setArEmissiveBoost(false);
+  });
   elements.statusPill.addEventListener('click', () => {
     elements.infoDrawer.classList.toggle('hidden');
   });
