@@ -411,6 +411,15 @@ h1 {
   box-shadow: 0 18px 40px rgba(0,0,0,0.35);
 }
 
+/* Center the card CTA while keeping the paragraphs left-aligned for readability. */
+.intro-card .primary,
+.victory-card .primary {
+  display: block;
+  width: fit-content;
+  min-width: 60%;
+  margin: 4px auto 0;
+}
+
 .intro-card h2,
 .victory-card h2 {
   margin: 0 0 12px 0;
