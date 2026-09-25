@@ -26,15 +26,17 @@ The project is currently in a working prototype state and is already pushed to G
 - route.js — canonical checkpoint route config
 - assets/models/ — local GLB files used by the AR clues
 
-## Current route
-1. REI Washington DC (38.9053987, -77.0028936, 50 m radius)
-2. Union Market (38.908306, -76.997250, 20 m radius)
-3. La Cosecha (38.908778, -76.999444, 18 m radius)
-4. Eunia (38.907966, -77.001971, 16 m radius)
-5. Red Bear Brewing (38.905570, -77.002481, 18 m radius)
-6. The Rigby (38.906031, -77.002184, 20 m radius)
+## Current route (5 stops, `noma-5stop-final-v1`)
+1. Union Market (38.908306, -76.997250, 20 m radius) — `union-market.glb`
+2. La Cosecha (38.908778, -76.999444, 18 m radius) — `la_cosecha.glb`
+3. Red Bear Brewing (38.905570, -77.002481, 18 m radius) — `red_bear_brewing.glb`
+4. The Rigby (38.906031, -77.002184, 20 m radius) — `the_rigby.glb`
+5. **Final** (38.9053987, -77.0028936, 50 m radius) — `the_globe.glb` — `final: true`
 
-Route source is defined in `route.js` and used by app logic. Union Market was added as checkpoint 2 (2026-09-13) — it wasn't in the original 5-stop route. Coordinates for stops 2-6 were corrected from earlier rough placeholders to precise values on 2026-09-13; REI's coordinates were already correct and unchanged.
+Route source is defined in `route.js`. On 2026-09-25 the route was cut to these 5 stops (REI and Eunia removed) and the copy rewritten per `docs/CONTENT.md`. Stop 5 ("Final") is a wrap-up finale: it's geofenced at REI's coordinates **as a placeholder** until the real brunch location is chosen, and its arrival shows a solid-backdrop finale modal (globe model + "the adventure continues" message, close button reads "Finish") instead of the live-camera reveal. Each stop also carries a `bloom: { strength, threshold, radius }` for its glow. **`the_globe.glb` does not exist yet** — the finale model 404s until it's added to `assets/models/`.
+
+## 3D models & AR rendering (effects pipeline)
+Models render with `<model-viewer>` **4.1.0** (the module build), `@google/model-viewer-effects` **1.5.0**, and `three` **0.172.0** loaded once via an import map in `index.html` — keep these versions pinned (effects breaks on three 0.182+/model-viewer 4.2+). The model-viewer has `environment-image="neutral"` + `tone-mapping="aces"`, and is wrapped in `<effect-composer render-mode="quality"><bloom-effect>` for the glow halo. On each model `load`, `app.js` forces **metalness = 1, roughness = 0** on every material (mirror chrome) and loops the clip (`play({repetitions: Infinity})`); per-stop bloom is applied from `route.js`. Bloom can't run in an AR session, so on `ar-status` the app boosts emissive strength ×1.8 while presenting and restores it after. iPhone Quick Look still auto-generates a **static** USDZ; add per-stop `.usdz` files for animated AR later.
 
 ## Behavior summary
 - Start screen appears first, then the user begins the hunt (this tap also warms up camera permission).
