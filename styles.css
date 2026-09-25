@@ -582,12 +582,12 @@ model-viewer {
 .confirm-actions {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .confirm-actions button {
-  flex: 1 1 0;
-  max-width: 150px;
+  flex: 0 0 auto;
+  min-width: 118px;
 }
 
 .danger-btn {

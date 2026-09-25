@@ -330,7 +330,7 @@ function renderMap() {
       center: [checkpoint.lng, checkpoint.lat],
       zoom: 17
     });
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+    // No NavigationControl — the +/- buttons collide with the HUD; pinch-zoom instead.
     window.__debugMap = map;
 
     map.on('load', () => {
