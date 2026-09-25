@@ -1,14 +1,34 @@
+/* Default (dark) theme — "Midnight rose-gold". Follows the device via prefers-color-scheme. */
 :root {
-  --bg: #08111d;
-  --surface: rgba(12, 19, 31, 0.82);
-  --surface-strong: rgba(18, 28, 43, 0.96);
-  --accent: #39d98a;
-  --accent-strong: #1cb56d;
-  --warning: #f7b955;
-  --danger: #f87171;
-  --text: #edf6ff;
-  --muted: #9fb5c9;
-  --shadow: rgba(0, 0, 0, 0.28);
+  --bg: #0f1226;
+  --surface: rgba(24, 26, 54, 0.82);
+  --surface-strong: rgba(30, 32, 62, 0.96);
+  --scrim: rgba(8, 6, 20, 0.82);
+  --accent: #e8a0a8;
+  --accent-strong: #d4818c;
+  --on-accent: #2a0f1a;
+  --warning: #eab35e;
+  --danger: #f0a3a3;
+  --text: #eef1fb;
+  --muted: #aab0d0;
+  --shadow: rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f3edf2;
+    --surface: rgba(255, 251, 253, 0.9);
+    --surface-strong: rgba(255, 252, 254, 0.97);
+    --scrim: rgba(60, 30, 50, 0.42);
+    --accent: #c96b84;
+    --accent-strong: #b1566f;
+    --on-accent: #ffffff;
+    --warning: #b7853a;
+    --danger: #d97a7a;
+    --text: #2c2230;
+    --muted: #7c6c7a;
+    --shadow: rgba(90, 50, 70, 0.18);
+  }
 }
 
 * {
@@ -256,7 +276,7 @@ h1 {
 
 .primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  color: #06120d;
+  color: var(--on-accent);
 }
 
 .secondary {
@@ -347,7 +367,7 @@ h1 {
   position: fixed;
   inset: 0;
   z-index: 1400;
-  background: rgba(2, 6, 12, 0.82);
+  background: var(--scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -379,7 +399,7 @@ h1 {
 .intro-card,
 .victory-card {
   width: min(100%, 380px);
-  background: rgba(10, 18, 29, 0.96);
+  background: var(--surface-strong);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 20px;
   padding: 22px 18px;
@@ -423,7 +443,7 @@ h1 {
 
 .ar-header {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -454,7 +474,7 @@ model-viewer {
 
 .ar-content {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   padding: 18px 16px 28px;
   background: rgba(5, 12, 18, 0.96);
 }
@@ -490,78 +510,75 @@ model-viewer {
   font-size: 1.05rem;
 }
 
-.map-marker {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-}
+/* Map markers (target pin, player dot) are drawn as native Mapbox GPU layers in app.js,
+   so there are no DOM marker styles here — that's what eliminates the pinch-zoom drift. */
 
-.marker-player {
-  background: #4ec7ff;
-  animation: player-pulse 2s ease-out infinite;
-}
-
-@keyframes player-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(78, 199, 255, 0.4); }
-  70% { box-shadow: 0 0 0 12px rgba(78, 199, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(78, 199, 255, 0); }
-}
-
-.marker-target {
-  width: auto;
-  height: auto;
-  border: none;
-  border-radius: 0;
-  background: none;
-  position: relative;
-}
-
-.marker-pin {
-  display: block;
-  width: 22px;
-  height: 22px;
-  background: var(--warning);
-  border: 2px solid rgba(255, 255, 255, 0.92);
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-}
-
-.marker-target.arrived .marker-pin {
-  animation: arrival-pop 0.65s ease-out;
-}
-
-@keyframes arrival-pop {
-  0% { transform: rotate(-45deg) scale(1); box-shadow: 0 0 0 0 rgba(247, 185, 85, 0.55), 0 4px 10px rgba(0, 0, 0, 0.4); }
-  40% { transform: rotate(-45deg) scale(1.35); }
-  100% { transform: rotate(-45deg) scale(1); box-shadow: 0 0 0 24px rgba(247, 185, 85, 0), 0 4px 10px rgba(0, 0, 0, 0.4); }
-}
-
-.marker-label {
+/* Finale confetti */
+.confetti {
   position: absolute;
-  bottom: calc(100% + 9px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  background: rgba(8, 17, 29, 0.9);
-  color: var(--text);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  z-index: 2;
 }
 
-.marker-label::after {
-  content: '';
+.confetti-piece {
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: rgba(8, 17, 29, 0.9);
+  top: -14px;
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-14px) rotate(0deg); }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0.15; }
+}
+
+/* Start over confirmation modal */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: var(--scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.confirm-card {
+  width: min(100%, 340px);
+  background: var(--surface-strong);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 22px 20px;
+  box-shadow: 0 18px 40px var(--shadow);
+  text-align: center;
+}
+
+.confirm-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.confirm-card p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.danger-btn {
+  background: var(--danger);
+  color: #2a0f14;
 }

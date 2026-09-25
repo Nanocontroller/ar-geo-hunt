@@ -5,8 +5,16 @@ const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === 
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibmFub2NvbnRyb2xsZXIiLCJhIjoiY211MDhnMnUzMHpudjJ3cG1pZGdmc3NrZSJ9.92dLSVjzLs9lR8UFr2GKbQ';
 const MAPBOX_STYLE = 'mapbox://styles/nanocontroller/cmfywcwmu004c01qtfpkpbgqd';
-const BUILDING_HIGHLIGHT_COLOR = '#2dd4ee';
-const WALKING_ROUTE_COLOR = '#4ec7ff';
+// Map palette (rose-gold, consistent across light/dark UI themes since the Mapbox style is dark).
+// Destination things = gold, you/your-path = rose.
+const GOLD = '#eab35e';
+const ROSE = '#ff8fab';
+const BUILDING_HIGHLIGHT_COLOR = GOLD;
+const WALKING_ROUTE_COLOR = ROSE;
+const GEOFENCE_COLOR = GOLD;
+const MARKER_TARGET_COLOR = GOLD;
+const MARKER_PLAYER_COLOR = ROSE;
+const ACCURACY_COLOR = ROSE;
 const ROUTE_REFRESH_DISTANCE_METERS = 15;
 
 const unionMarketCheckpoints = ROUTE.length
@@ -16,8 +24,7 @@ const unionMarketCheckpoints = ROUTE.length
 const appState = loadState();
 let map;
 let mapReady = false;
-let playerMarker;
-let targetMarker;
+let arrivalPopRAF = null;
 let lastRenderedCheckpointId = null;
 let lastHighlightedCheckpointId = null;
 let lastRouteFetchLocation = null;
@@ -29,6 +36,7 @@ let inRadiusStreak = 0;
 let watchId = null;
 let playStopTimer = null;
 let arCameraStream = null;
+let finaleActive = false;
 
 const STOP_PREVIEW_APPROACH_METERS = 120;
 const STOP_PREVIEW_ARRIVAL_DELAY_MS = 2600;
@@ -46,9 +54,13 @@ const elements = {
   infoDrawer: document.getElementById('infoDrawer'),
   arOverlay: document.getElementById('arOverlay'),
   arCameraVideo: document.getElementById('arCameraVideo'),
+  confetti: document.getElementById('confetti'),
   modelViewer: document.getElementById('modelViewer'),
   bloomEffect: document.getElementById('bloomEffect'),
   arLabel: document.getElementById('arLabel'),
+  confirmOverlay: document.getElementById('confirmOverlay'),
+  confirmResetYes: document.getElementById('confirmResetYes'),
+  confirmResetCancel: document.getElementById('confirmResetCancel'),
   clueTitle: document.getElementById('clueTitle'),
   clueText: document.getElementById('clueText'),
   closeArButton: document.getElementById('closeArButton'),
@@ -195,10 +207,23 @@ function updatePlayerAccuracy() {
   }
 }
 
-function createMapMarker(className, lng, lat, anchor = 'center') {
-  const el = document.createElement('div');
-  el.className = `map-marker ${className}`;
-  return new mapboxgl.Marker({ element: el, anchor }).setLngLat([lng, lat]).addTo(map);
+// Markers are drawn as native Mapbox layers (GPU, on the map canvas) so they never
+// drift/lag behind the map during pinch-zoom the way HTML markers do.
+function pointFeature(lng, lat, properties = {}) {
+  return { type: 'Feature', properties, geometry: { type: 'Point', coordinates: [lng, lat] } };
+}
+
+const EMPTY_POINT = { type: 'FeatureCollection', features: [] };
+
+function setTargetPoint(checkpoint) {
+  const source = map.getSource('target-point');
+  if (source) source.setData(pointFeature(checkpoint.lng, checkpoint.lat, { name: checkpointDisplayName(checkpoint) }));
+}
+
+function setPlayerPoint(location) {
+  const source = map.getSource('player-point');
+  if (!source) return;
+  source.setData(location ? pointFeature(location.lng, location.lat) : EMPTY_POINT);
 }
 
 function formatDistance(meters) {
@@ -270,14 +295,8 @@ async function updateWalkingRoute(checkpoint, playerLocation) {
   }
 }
 
-function setTargetLabel(name) {
-  const label = targetMarker.getElement().querySelector('.marker-label');
-  if (label) label.textContent = name;
-}
-
 function updateMapForCheckpoint(checkpoint) {
-  targetMarker.setLngLat([checkpoint.lng, checkpoint.lat]);
-  setTargetLabel(checkpointDisplayName(checkpoint));
+  setTargetPoint(checkpoint);
 
   const geofenceSource = map.getSource('geofence');
   if (geofenceSource) geofenceSource.setData(geofenceCirclePolygon(checkpoint));
@@ -289,9 +308,7 @@ function updateMapForCheckpoint(checkpoint) {
     map.flyTo({ center: [checkpoint.lng, checkpoint.lat], zoom: 17, duration: 1200 });
   }
 
-  if (appState.playerLocation) {
-    playerMarker.setLngLat([appState.playerLocation.lng, appState.playerLocation.lat]);
-  }
+  setPlayerPoint(appState.playerLocation);
   updatePlayerAccuracy();
 
   if (appState.phase === 'map' && appState.playerLocation) {
@@ -325,13 +342,13 @@ function renderMap() {
         id: 'geofence-fill',
         type: 'fill',
         source: 'geofence',
-        paint: { 'fill-color': '#39d98a', 'fill-opacity': 0.14 }
+        paint: { 'fill-color': GEOFENCE_COLOR, 'fill-opacity': 0.14 }
       });
       map.addLayer({
         id: 'geofence-line',
         type: 'line',
         source: 'geofence',
-        paint: { 'line-color': '#39d98a', 'line-width': 2 }
+        paint: { 'line-color': GEOFENCE_COLOR, 'line-width': 2 }
       });
 
       map.addSource('mapbox-buildings-lookup', { type: 'vector', url: 'mapbox://mapbox.mapbox-streets-v8' });
@@ -362,13 +379,13 @@ function renderMap() {
         id: 'player-accuracy-fill',
         type: 'fill',
         source: 'player-accuracy',
-        paint: { 'fill-color': '#4ec7ff', 'fill-opacity': 0.1 }
+        paint: { 'fill-color': ACCURACY_COLOR, 'fill-opacity': 0.1 }
       });
       map.addLayer({
         id: 'player-accuracy-line',
         type: 'line',
         source: 'player-accuracy',
-        paint: { 'line-color': '#4ec7ff', 'line-width': 1, 'line-opacity': 0.35 }
+        paint: { 'line-color': ACCURACY_COLOR, 'line-width': 1, 'line-opacity': 0.35 }
       });
 
       map.addSource('walking-route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
@@ -384,19 +401,50 @@ function renderMap() {
         }
       });
 
+      // Player marker (rose): a soft halo + solid dot, drawn on the GPU canvas.
+      map.addSource('player-point', { type: 'geojson', data: EMPTY_POINT });
+      map.addLayer({
+        id: 'player-halo',
+        type: 'circle',
+        source: 'player-point',
+        paint: { 'circle-radius': 16, 'circle-color': MARKER_PLAYER_COLOR, 'circle-opacity': 0.18 }
+      });
+      map.addLayer({
+        id: 'player-dot',
+        type: 'circle',
+        source: 'player-point',
+        paint: { 'circle-radius': 7, 'circle-color': MARKER_PLAYER_COLOR, 'circle-stroke-width': 2.5, 'circle-stroke-color': '#ffffff' }
+      });
+
+      // Target marker (gold): dot + name label, on the GPU canvas.
+      map.addSource('target-point', { type: 'geojson', data: pointFeature(loadCheckpoint.lng, loadCheckpoint.lat, { name: checkpointDisplayName(loadCheckpoint) }) });
+      map.addLayer({
+        id: 'target-dot',
+        type: 'circle',
+        source: 'target-point',
+        paint: { 'circle-radius': 9, 'circle-color': MARKER_TARGET_COLOR, 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' }
+      });
+      map.addLayer({
+        id: 'target-label',
+        type: 'symbol',
+        source: 'target-point',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
+          'text-size': 13,
+          'text-anchor': 'bottom',
+          'text-offset': [0, -1.1],
+          'text-allow-overlap': true
+        },
+        paint: {
+          'text-color': '#ffffff',
+          'text-halo-color': 'rgba(10, 8, 20, 0.9)',
+          'text-halo-width': 1.6
+        }
+      });
+
       map.on('idle', () => highlightCheckpointBuilding(getCurrentCheckpoint()));
       map.on('rotate', renderDistance);
-
-      targetMarker = createMapMarker('marker-target', loadCheckpoint.lng, loadCheckpoint.lat, 'bottom');
-      const targetPin = document.createElement('span');
-      targetPin.className = 'marker-pin';
-      targetMarker.getElement().appendChild(targetPin);
-      const targetLabel = document.createElement('span');
-      targetLabel.className = 'marker-label';
-      targetLabel.textContent = loadCheckpoint.name;
-      targetMarker.getElement().appendChild(targetLabel);
-
-      playerMarker = createMapMarker('marker-player', loadCheckpoint.lng, loadCheckpoint.lat);
       lastRenderedCheckpointId = loadCheckpoint.id;
 
       mapReady = true;
@@ -407,6 +455,10 @@ function renderMap() {
   }
 
   if (mapReady) updateMapForCheckpoint(checkpoint);
+}
+
+function showConfirmReset(show) {
+  elements.confirmOverlay.classList.toggle('hidden', !show);
 }
 
 function recenterMap() {
@@ -424,14 +476,15 @@ function recenterMap() {
 }
 
 function renderStatusBadge() {
-  const phaseLabels = {
-    boot: 'Waiting for GPS',
-    map: 'Tracking checkpoint',
-    ar_ready: 'AR clue ready',
-    complete: 'Hunt complete'
-  };
+  const total = appState.checkpoints.length;
+  const step = `Stop ${Math.min(appState.currentCheckpointIndex + 1, total)} of ${total}`;
 
-  elements.statusBadge.textContent = phaseLabels[appState.phase] || 'Tracking';
+  let label;
+  if (appState.phase === 'complete') label = 'Complete';
+  else if (!appState.playerLocation) label = 'Waiting for GPS';
+  else label = step;
+
+  elements.statusBadge.textContent = label;
   elements.statusPill.classList.toggle('loading', !appState.playerLocation);
 }
 
@@ -592,10 +645,34 @@ function prefetchNextModel() {
   fetch(nextCheckpoint.clue.modelUrl).catch(() => {});
 }
 
+function launchConfetti() {
+  const container = elements.confetti;
+  if (!container) return;
+  container.innerHTML = '';
+  const colors = [ROSE, GOLD, '#ffffff', '#d4818c'];
+  for (let i = 0; i < 30; i += 1) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = `${Math.random() * 0.7}s`;
+    piece.style.animationDuration = `${2.4 + Math.random() * 1.8}s`;
+    container.appendChild(piece);
+  }
+}
+
+function setFinaleActive(active) {
+  if (active === finaleActive) return;
+  finaleActive = active;
+  if (active) launchConfetti();
+  else if (elements.confetti) elements.confetti.innerHTML = '';
+}
+
 function renderAR() {
   const checkpoint = getCurrentCheckpoint();
   if (!checkpoint || appState.phase !== 'ar_ready') {
     stopArCamera();
+    setFinaleActive(false);
     elements.arOverlay.classList.add('hidden');
     elements.arOverlay.classList.remove('finale');
     return;
@@ -604,6 +681,7 @@ function renderAR() {
   const isFinal = Boolean(checkpoint.final);
   elements.arOverlay.classList.toggle('finale', isFinal);
   elements.arOverlay.classList.remove('hidden');
+  setFinaleActive(isFinal);
 
   // The finale is a wrap-up modal on a solid backdrop, not a live-camera reveal.
   if (isFinal) {
@@ -694,12 +772,19 @@ function resetProgress() {
 
 function playArrivalMoment() {
   if (navigator.vibrate) navigator.vibrate(60);
-  if (!targetMarker) return;
-  const el = targetMarker.getElement();
-  el.classList.remove('arrived');
-  void el.offsetWidth; // restart the CSS animation
-  el.classList.add('arrived');
-  setTimeout(() => el.classList.remove('arrived'), 1000);
+  if (!mapReady || !map.getLayer('target-dot')) return;
+  const base = 9;
+  const peak = 22;
+  const duration = 650;
+  const start = performance.now();
+  cancelAnimationFrame(arrivalPopRAF);
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / duration);
+    map.setPaintProperty('target-dot', 'circle-radius', base + (peak - base) * Math.sin(t * Math.PI));
+    if (t < 1) arrivalPopRAF = requestAnimationFrame(step);
+    else map.setPaintProperty('target-dot', 'circle-radius', base);
+  };
+  arrivalPopRAF = requestAnimationFrame(step);
 }
 
 function triggerArrival() {
@@ -933,9 +1018,11 @@ function bindEvents() {
     resetProgress();
     elements.introOverlay.classList.remove('hidden');
   });
-  elements.resetButton.addEventListener('click', () => {
-    const confirmed = window.confirm('Start over? This erases your progress and sends you back to the first stop.');
-    if (confirmed) resetProgress();
+  elements.resetButton.addEventListener('click', () => showConfirmReset(true));
+  elements.confirmResetCancel.addEventListener('click', () => showConfirmReset(false));
+  elements.confirmResetYes.addEventListener('click', () => {
+    showConfirmReset(false);
+    resetProgress();
   });
 
   elements.debugApplyButton.addEventListener('click', () => {
