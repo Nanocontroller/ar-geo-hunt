@@ -8,7 +8,7 @@
       rel="stylesheet"
       href="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.css"
     />
-    <link rel="stylesheet" href="./styles.css?v=16" />
+    <link rel="stylesheet" href="./styles.css?v=17" />
     <script type="importmap">
       {
         "imports": {
@@ -46,15 +46,15 @@
 
       <div id="infoDrawer" class="info-drawer hidden">
         <div class="drawer-handle"></div>
-        <div class="eyebrow">Union Market DC Adventure</div>
+        <div class="eyebrow">Jess & B</div>
         <h1 id="checkpointTitle">Checkpoint</h1>
-        <div id="checkpointHint" class="hint">Start the hunt to begin tracking your position.</div>
+        <div id="checkpointHint" class="hint">Start the challenge to begin tracking your position.</div>
         <div class="progress-header">
           <span>Progress</span>
           <span id="progressCount">0 / 5</span>
         </div>
         <ul id="progressList" class="progress-list"></ul>
-        <button id="resetButton" class="ghost small">Start over</button>
+        <button id="resetButton" class="ghost small">Start Over</button>
       </div>
 
       <div id="debugPanel" class="debug-panel hidden">
@@ -89,14 +89,15 @@
       <div class="intro-card">
         <div id="introStart">
           <div class="eyebrow">Our 2-Year Anniversary</div>
-          <h2>Tinder, a date of chaos and romance</h2>
+          <h2>Welcome to Your Mission</h2>
           <p>
-            Welcome, Jess. Your mission is simple: follow the coordinates, remember how we survived our
-            first date without valid IDs or working debit cards, and make it to the final surprise.
+            Hola, querida. Your mission: No more ghosting. Follow the coordinates, survive the memories of lost IDs and broken debit cards, and make it to the end.
           </p>
           <p>
-            Stay silly, and try to arrive at the final surprise without getting too distracted by my presence.
-            The final prize may be a new plan... or it may be a very good excuse to invite yourself over again.
+            Stay focused. Don't let my presence distract you *too* much.
+          </p>
+          <p>
+            Your final reward is waiting... and it's a pretty good excuse to invite yourself over again.
           </p>
         </div>
         <div id="introResume" class="hidden">
@@ -104,16 +105,16 @@
           <h2>Ready to continue?</h2>
           <p id="introResumeBody">Pick up right where you left off.</p>
         </div>
-        <button id="beginAdventureButton" class="primary">Begin the adventure!</button>
+        <button id="beginAdventureButton" class="primary">Accept Mission</button>
       </div>
     </div>
 
     <div id="victoryOverlay" class="victory-overlay hidden" aria-live="polite">
       <div class="victory-card">
-        <div class="eyebrow">We made it to two years!</div>
-        <h2>It was easy, and fun.<br />Now, will you accept the ultimate challenge to explore the rest of the world with me indefinitely?</h2>
-        <p id="victoryText">You solved every checkpoint and completed the hunt.</p>
-        <button id="playAgainButton" class="primary">I accept!</button>
+        <div class="eyebrow">We made it two years!</div>
+        <h2>Happy Anniversary ♥️!</h2>
+        <p id="victoryText">Two years of beautiful chaos down. Jess, will you accept the ultimate challenge and travel the globe with me, sharing new experiences and making memories all over the world?</p>
+        <button id="playAgainButton" class="primary">Yes, I'm in!</button>
       </div>
     </div>
 
@@ -132,7 +133,7 @@
       <video id="arCameraVideo" class="ar-camera-feed" autoplay muted playsinline></video>
       <div id="confetti" class="confetti" aria-hidden="true"></div>
       <div class="ar-header">
-        <span id="arLabel">AR Clue</span>
+        <span id="arLabel">Date Clue</span>
         <button id="closeArButton" class="mini">Close &amp; continue</button>
       </div>
       <model-viewer
@@ -161,7 +162,7 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer-module.min.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.js"></script>
-    <script src="./route.js?v=9"></script>
-    <script src="./app.js?v=18"></script>
+    <script src="./route.js?v=10"></script>
+    <script src="./app.js?v=19"></script>
   </body>
 </html>

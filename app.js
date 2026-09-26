@@ -694,7 +694,7 @@ function renderAR() {
     startArCamera();
   }
 
-  elements.arLabel.textContent = isFinal ? 'Final surprise' : 'AR Clue';
+  elements.arLabel.textContent = isFinal ? 'Final surprise' : 'Date Clue';
   elements.closeArButton.textContent = isFinal ? 'Finish' : 'Close & continue';
 
   if (elements.modelViewer.getAttribute('src') !== checkpoint.clue.modelUrl) {
@@ -707,10 +707,7 @@ function renderAR() {
 }
 
 function renderVictoryState() {
-  const total = appState.checkpoints.length;
-
   if (appState.phase === 'complete') {
-    elements.victoryText.textContent = `You made it through all ${total} stops. The adventure continues — I love you.`;
     elements.victoryOverlay.classList.remove('hidden');
   } else {
     elements.victoryOverlay.classList.add('hidden');
@@ -1099,7 +1096,7 @@ function configureStartScreen() {
   elements.introOverlay.classList.remove('hidden');
   elements.introStart.classList.toggle('hidden', resuming);
   elements.introResume.classList.toggle('hidden', !resuming);
-  elements.beginAdventureButton.textContent = resuming ? 'Continue' : 'Begin the adventure!';
+  elements.beginAdventureButton.textContent = resuming ? 'Continue' : 'Accept Mission';
 
   if (resuming) {
     const total = appState.checkpoints.length;

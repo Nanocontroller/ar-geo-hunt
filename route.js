@@ -7,8 +7,8 @@ window.unionMarketRoute = [
     radius: 20,
     bloom: { strength: 1.1, threshold: 0.8, radius: 0.6 },
     clue: {
-      title: 'Interrogations & Bad Drinks',
-      text: `Where it all started. I drank a terrible spritzer, you had a beer and generously paid because I had no ID. I also interrogated you with a million questions. Time to move.`,
+      title: 'Interrogations & First Impressions',
+      text: `Where it all started! It was too loud for my endless questions, I had a terrible spritz, and you paid since my ID was MIA. Let's move to the next stop!`,
       modelUrl: './assets/models/union-market.glb'
     }
   },
@@ -34,20 +34,20 @@ window.unionMarketRoute = [
     bloom: { strength: 1.1, threshold: 0.8, radius: 0.6 },
     clue: {
       title: 'Bold Moves Only',
-      text: `Over my cider and your IPA, the flirting leveled up. I told you I wanted to kiss you, your debit card crashed until Evan saved the day, and you smoothly invited yourself to my place. Iconic!`,
+      text: `Over my cider and your IPA, the flirting leveled up.\n I told you I wanted to kiss you, your debit card crashed until Evan saved the day, and you smoothly invited yourself to my place.\n Iconic.`,
       modelUrl: './assets/models/red_bear_brewing.glb'
     }
   },
   {
     id: 'cp-4',
-    name: 'The Apartment',
+    name: 'My place',
     lat: 38.906031,
     lng: -77.002184,
     radius: 20,
     bloom: { strength: 1.1, threshold: 0.8, radius: 0.6 },
     clue: {
-      title: 'The Setup',
-      text: `We made it. I showed off the view, you stayed, and the rest is history. I ♥️ YOU`,
+      title: 'Come upstairs',
+      text: `We made it. I showed off the view, we kissed, and the rest is history.`,
       modelUrl: './assets/models/the_rigby.glb'
     }
   },
@@ -55,14 +55,14 @@ window.unionMarketRoute = [
     id: 'cp-5',
     name: 'Final Stop',
     // Euonia (old Eunia coordinates) — the grand finale.
-    lat: 38.907966,
+    lat: 38.907966, 
     lng: -77.001971,
     radius: 20,
     final: true,
     bloom: { strength: 1.4, threshold: 0.7, radius: 0.7 },
     clue: {
-      title: 'Thank you querida!',
-      text: `Time flies when you're having fun. Now we have a whole world left to discover.\nHappy Anniversary!`,
+      title: 'Brunch: Euonia',
+      text: `Two years down. But look at all that world left to conquer.\n Will you keep navigating this beautiful chaos with me? \n Happy Anniversary Querida!`,
       modelUrl: './assets/models/the_world.glb'
     }
   }
