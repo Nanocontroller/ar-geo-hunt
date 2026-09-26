@@ -37,6 +37,7 @@ let watchId = null;
 let playStopTimer = null;
 let arCameraStream = null;
 let finaleActive = false;
+let replayActive = false;
 
 const STOP_PREVIEW_APPROACH_METERS = 120;
 const STOP_PREVIEW_ARRIVAL_DELAY_MS = 2600;
@@ -77,6 +78,7 @@ const elements = {
   victoryOverlay: document.getElementById('victoryOverlay'),
   victoryText: document.getElementById('victoryText'),
   playAgainButton: document.getElementById('playAgainButton'),
+  victoryResetButton: document.getElementById('victoryResetButton'),
   debugPanel: document.getElementById('debugPanel'),
   debugLat: document.getElementById('debugLat'),
   debugLng: document.getElementById('debugLng'),
@@ -720,7 +722,71 @@ function renderVictoryState() {
   }
 }
 
+// ---- Victory replay: an automatic "victory lap" over every stop ----
+
+function replayShowStopOnMap(checkpoint) {
+  setTargetPoint(checkpoint);
+  const geofenceSource = map.getSource('geofence');
+  if (geofenceSource) geofenceSource.setData(geofenceCirclePolygon(checkpoint));
+  map.flyTo({ center: [checkpoint.lng, checkpoint.lat], zoom: 17.2, duration: 2200 });
+}
+
+function endReplay() {
+  replayActive = false;
+  document.body.classList.remove('replaying');
+  elements.arOverlay.classList.add('hidden');
+  elements.arOverlay.classList.remove('finale');
+  elements.closeArButton.textContent = 'Close & continue';
+  if (elements.confetti) elements.confetti.innerHTML = '';
+  render();
+  elements.victoryOverlay.classList.remove('hidden');
+}
+
+async function replayTour() {
+  if (!mapReady || replayActive) return;
+  replayActive = true;
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  document.body.classList.add('replaying'); // hides the HUD during the recap
+  elements.victoryOverlay.classList.add('hidden');
+  stopArCamera();
+  elements.arOverlay.classList.add('finale'); // solid backdrop, no live camera
+  elements.closeArButton.textContent = 'Skip';
+  // Hide live-position layers during the recap.
+  setPlayerPoint(null);
+  clearWalkingRoute();
+  lastAccuracy = null;
+  updatePlayerAccuracy();
+
+  const stops = appState.checkpoints;
+  for (let i = 0; i < stops.length; i += 1) {
+    const checkpoint = stops[i];
+    // 1) fly the map to the stop (overlay hidden so the map animation is visible)
+    elements.arOverlay.classList.add('hidden');
+    if (elements.confetti) elements.confetti.innerHTML = '';
+    replayShowStopOnMap(checkpoint);
+    await wait(2400);
+    if (!replayActive) return;
+
+    // 2) pop the stop's 3D object + clue
+    elements.arLabel.textContent = `Stop ${i + 1} of ${stops.length}`;
+    if (elements.modelViewer.getAttribute('src') !== checkpoint.clue.modelUrl) {
+      elements.modelViewer.setAttribute('src', checkpoint.clue.modelUrl);
+    }
+    applyBloomForCheckpoint(checkpoint);
+    elements.clueTitle.textContent = checkpoint.clue.title;
+    elements.clueText.textContent = checkpoint.clue.text;
+    elements.arOverlay.classList.remove('hidden');
+    if (i === stops.length - 1) launchConfetti();
+    await wait(3000);
+    if (!replayActive) return;
+  }
+
+  endReplay();
+}
+
 function render() {
+  if (replayActive) return; // the victory replay drives the map/overlay directly
   renderStatusBadge();
   renderCheckpointInfo();
   renderMap();
@@ -1032,11 +1098,15 @@ function bindEvents() {
     if (elements.infoDrawer.contains(event.target) || elements.statusPill.contains(event.target)) return;
     setDrawer(false);
   });
-  elements.closeArButton.addEventListener('click', unlockCurrentCheckpoint);
-  elements.playAgainButton.addEventListener('click', () => {
-    resetProgress();
-    configureStartScreen();
+  elements.closeArButton.addEventListener('click', () => {
+    if (replayActive) {
+      endReplay();
+      return;
+    }
+    unlockCurrentCheckpoint();
   });
+  elements.playAgainButton.addEventListener('click', replayTour);
+  elements.victoryResetButton.addEventListener('click', () => showConfirmReset(true));
   elements.resetButton.addEventListener('click', () => showConfirmReset(true));
   elements.confirmResetCancel.addEventListener('click', () => showConfirmReset(false));
   elements.confirmResetYes.addEventListener('click', () => {

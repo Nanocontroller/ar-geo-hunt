@@ -442,6 +442,19 @@ h1 {
   margin: 4px auto 0;
 }
 
+.victory-card .victory-reset {
+  display: block;
+  width: fit-content;
+  margin: 12px auto 0;
+}
+
+/* During the victory replay the HUD is hidden so the recap reads cinematically. */
+body.replaying .status-pill,
+body.replaying .recenter-button,
+body.replaying .location-help-banner {
+  display: none !important;
+}
+
 /* Center the "Start over" button inside the info drawer too. */
 .info-drawer .ghost {
   display: block;
