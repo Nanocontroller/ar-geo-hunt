@@ -481,6 +481,11 @@ body.replaying .location-help-banner {
   margin-bottom: 6px;
 }
 
+.intro-card .intro-ps {
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
 .ar-overlay {
   position: fixed;
   inset: 0;
