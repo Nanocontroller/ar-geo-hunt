@@ -8,7 +8,7 @@ window.unionMarketRoute = [
     bloom: { strength: 1.1, threshold: 0.8, radius: 0.6 },
     clue: {
       title: 'Interrogations & First Impressions',
-      text: `Where it all started! It was too loud for my endless questions, I had a terrible spritz, and you paid since my ID was MIA. Let's move to the next stop!`,
+      text: `Where it all started! It was too loud for my endless questions, I had a terrible spritz, and you paid since my ID was MIA. Let's move to the next stop!\nLet's meet and decide the next stop.`,
       modelUrl: './assets/models/union-market.glb'
     }
   },
