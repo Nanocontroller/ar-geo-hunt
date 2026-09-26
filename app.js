@@ -982,15 +982,6 @@ function startHunt() {
   requestLocation();
 }
 
-function resetProgress() {
-  const nextState = createInitialState();
-  Object.assign(appState, nextState);
-  if (watchId) navigator.geolocation.clearWatch(watchId);
-  saveState();
-  setPhase('boot');
-  render();
-}
-
 function applyDebugLocation(lat, lng) {
   const latitude = Number(lat);
   const longitude = Number(lng);
