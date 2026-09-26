@@ -57,7 +57,7 @@ Console equivalents (all available at `window.geoHuntDebug`):
    - Mac: Safari → Develop menu → select your iPhone → select the page once it's open. This gives you `geoHuntDebug` from the Mac.
 
 2. On the iPhone, open Safari and go to:
-   `https://nanocontroller.github.io/ar-geo-hunt/?debug=1`
+   `https://nanocontroller.github.io/the-anti-ghosting-tour/?debug=1`
 
 3. Tap **Begin the adventure**.
    - Allow the location prompt (real GPS — it'll report Chicago; that's expected and fine, we're not relying on it).

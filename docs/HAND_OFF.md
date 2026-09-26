@@ -54,7 +54,7 @@ The app includes a debug mode for testing without physically walking around town
 
 Open with:
 - http://localhost:8000/?debug=1
-- https://nanocontroller.github.io/ar-geo-hunt/?debug=1
+- https://nanocontroller.github.io/the-anti-ghosting-tour/?debug=1
 
 Phone debug sequence:
 1. Open the HTTPS debug URL.
@@ -119,9 +119,9 @@ Fresh validation succeeded for the current version:
 - http://localhost:8000/?debug=1
 
 ## Last known published URL for phone testing
-- https://nanocontroller.github.io/ar-geo-hunt/?debug=1
+- https://nanocontroller.github.io/the-anti-ghosting-tour/?debug=1
 
 ## Git repo status
 The repo is already pushed and the app is in a working prototype state.
 Current remote:
-- https://github.com/Nanocontroller/ar-geo-hunt.git
+- https://github.com/Nanocontroller/the-anti-ghosting-tour.git

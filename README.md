@@ -2,8 +2,8 @@
 
 A mobile-first, install-free browser scavenger hunt for a DC anniversary route. Players walk a 6-stop route around Union Market; arriving at each stop automatically reveals an AR clue (a 3D model over the live camera feed) as the "punch line," then advances them to the next stop.
 
-**Live:** https://nanocontroller.github.io/ar-geo-hunt/
-**Repo:** [`Nanocontroller/ar-geo-hunt`](https://github.com/Nanocontroller/ar-geo-hunt)
+**Live:** https://nanocontroller.github.io/the-anti-ghosting-tour/
+**Repo:** [`Nanocontroller/the-anti-ghosting-tour`](https://github.com/Nanocontroller/the-anti-ghosting-tour)
 
 ## How it plays
 1. Open the site on a phone and tap **Begin the adventure** (this also warms up camera permission).
@@ -72,7 +72,7 @@ Console API (`window.geoHuntDebug`):
 See `docs/FIELD_TESTING.md` for the full on-device walkthrough.
 
 ## Deployment
-Push to `main` on `Nanocontroller/ar-geo-hunt`; GitHub Pages serves the site. Remember to bump the `?v=N` cache-busts for any changed static file. The Mapbox token is a URL-restricted public (`pk.`) token embedded in `app.js`; GitHub push protection flags token changes and requires a one-time unblock approval per new token value.
+Push to `main` on `Nanocontroller/the-anti-ghosting-tour`; GitHub Pages serves the site. Remember to bump the `?v=N` cache-busts for any changed static file. The Mapbox token is a URL-restricted public (`pk.`) token embedded in `app.js`; GitHub push protection flags token changes and requires a one-time unblock approval per new token value.
 
 ## Persistence
 Progress is saved in `localStorage` under `geo-hunt-state-v3`. Loading validates the saved `routeVersion`; a mismatch discards stale progress and rebuilds from `route.js`.
