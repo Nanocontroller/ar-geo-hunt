@@ -61,7 +61,7 @@ window.unionMarketRoute = [
     final: true,
     bloom: { strength: 1.4, threshold: 0.7, radius: 0.7 },
     clue: {
-      title: 'Brunch: Euonia',
+      title: 'We have the world to explore together 🌎',
       text: `Two years down. But look at all that world left to conquer.\n Will you keep navigating this beautiful chaos with me? \n Happy Anniversary Querida!`,
       modelUrl: './assets/models/the_world.glb'
     }
