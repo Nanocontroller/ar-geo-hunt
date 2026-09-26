@@ -1096,7 +1096,7 @@ function configureStartScreen() {
   elements.introOverlay.classList.remove('hidden');
   elements.introStart.classList.toggle('hidden', resuming);
   elements.introResume.classList.toggle('hidden', !resuming);
-  elements.beginAdventureButton.textContent = resuming ? 'Continue' : 'Accept Mission';
+  elements.beginAdventureButton.textContent = resuming ? 'Continue' : "Okay, let's do it!";
 
   if (resuming) {
     const total = appState.checkpoints.length;
