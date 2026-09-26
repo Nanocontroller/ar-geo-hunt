@@ -69,6 +69,9 @@ const elements = {
   progressList: document.getElementById('progressList'),
   progressCount: document.getElementById('progressCount'),
   introOverlay: document.getElementById('introOverlay'),
+  introStart: document.getElementById('introStart'),
+  introResume: document.getElementById('introResume'),
+  introResumeBody: document.getElementById('introResumeBody'),
   beginAdventureButton: document.getElementById('beginAdventureButton'),
   victoryOverlay: document.getElementById('victoryOverlay'),
   victoryText: document.getElementById('victoryText'),
@@ -99,6 +102,7 @@ function createInitialState() {
   return {
     currentCheckpointIndex: 0,
     phase: 'boot',
+    started: false,
     playerLocation: null,
     progress: [],
     routeVersion: ROUTE_VERSION,
@@ -859,6 +863,11 @@ async function warmUpCameraPermission() {
 }
 
 function startHunt() {
+  // Mark the session as started so a reload (e.g. iOS reloading the tab after sleep)
+  // shows the resume prompt instead of the fresh intro. Persists until the user resets.
+  appState.started = true;
+  saveState();
+
   if (!navigator.geolocation) {
     elements.checkpointHint.textContent = 'This browser does not support geolocation.';
     return;
@@ -1016,13 +1025,14 @@ function bindEvents() {
   elements.closeArButton.addEventListener('click', unlockCurrentCheckpoint);
   elements.playAgainButton.addEventListener('click', () => {
     resetProgress();
-    elements.introOverlay.classList.remove('hidden');
+    configureStartScreen();
   });
   elements.resetButton.addEventListener('click', () => showConfirmReset(true));
   elements.confirmResetCancel.addEventListener('click', () => showConfirmReset(false));
   elements.confirmResetYes.addEventListener('click', () => {
     showConfirmReset(false);
     resetProgress();
+    configureStartScreen();
   });
 
   elements.debugApplyButton.addEventListener('click', () => {
@@ -1067,8 +1077,49 @@ function bindEvents() {
   elements.debugCompleteButton.addEventListener('click', completeDebugRoute);
 }
 
+// 'not_started' | 'in_progress' | 'completed' — drives which start prompt shows on load.
+function sessionStatus() {
+  if (appState.phase === 'complete') return 'completed';
+  const solvedAny = appState.checkpoints.some((checkpoint) => checkpoint.solved);
+  if (appState.started || solvedAny || appState.currentCheckpointIndex > 0) return 'in_progress';
+  return 'not_started';
+}
+
+// Decide, on load, whether to show the fresh intro, a "welcome back" resume prompt, or the finale.
+function configureStartScreen() {
+  const status = sessionStatus();
+
+  if (status === 'completed') {
+    // Session already finished — skip the intro and let the victory overlay show (phase === 'complete').
+    elements.introOverlay.classList.add('hidden');
+    return;
+  }
+
+  const resuming = status === 'in_progress';
+  elements.introOverlay.classList.remove('hidden');
+  elements.introStart.classList.toggle('hidden', resuming);
+  elements.introResume.classList.toggle('hidden', !resuming);
+  elements.beginAdventureButton.textContent = resuming ? 'Continue' : 'Begin the adventure!';
+
+  if (resuming) {
+    const total = appState.checkpoints.length;
+    const solved = appState.checkpoints.filter((checkpoint) => checkpoint.solved).length;
+    const nextName = checkpointDisplayName(getCurrentCheckpoint());
+    elements.introResumeBody.textContent = solved > 0
+      ? `You've visited ${solved} of ${total} stops. Next up: ${nextName}. Pick up right where you left off.`
+      : `Your adventure is underway — next up: ${nextName}. Pick up right where you left off.`;
+  }
+}
+
 function init() {
   bindEvents();
+  configureStartScreen();
+  // Persist state whenever the app is backgrounded (phone sleep / tab switch) so the
+  // resume prompt is accurate when it comes back to the foreground.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) saveState();
+  });
+  window.addEventListener('pagehide', saveState);
   render();
 }
 

@@ -87,16 +87,23 @@
 
     <div id="introOverlay" class="intro-overlay">
       <div class="intro-card">
-        <div class="eyebrow">Our 2-Year Anniversary</div>
-        <h2>Tinder, a date of chaos and romance</h2>
-        <p>
-          Welcome, Jess. Your mission is simple: follow the coordinates, remember how we survived our
-          first date without valid IDs or working debit cards, and make it to the final surprise.
-        </p>
-        <p>
-          Stay silly, and try to arrive at the final surprise without getting too distracted by my presence.
-          The final prize may be a new plan... or it may be a very good excuse to invite yourself over again.
-        </p>
+        <div id="introStart">
+          <div class="eyebrow">Our 2-Year Anniversary</div>
+          <h2>Tinder, a date of chaos and romance</h2>
+          <p>
+            Welcome, Jess. Your mission is simple: follow the coordinates, remember how we survived our
+            first date without valid IDs or working debit cards, and make it to the final surprise.
+          </p>
+          <p>
+            Stay silly, and try to arrive at the final surprise without getting too distracted by my presence.
+            The final prize may be a new plan... or it may be a very good excuse to invite yourself over again.
+          </p>
+        </div>
+        <div id="introResume" class="hidden">
+          <div class="eyebrow">Welcome back</div>
+          <h2>Ready to continue?</h2>
+          <p id="introResumeBody">Pick up right where you left off.</p>
+        </div>
         <button id="beginAdventureButton" class="primary">Begin the adventure!</button>
       </div>
     </div>
@@ -155,6 +162,6 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.js"></script>
     <script src="./route.js?v=9"></script>
-    <script src="./app.js?v=17"></script>
+    <script src="./app.js?v=18"></script>
   </body>
 </html>
