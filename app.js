@@ -52,6 +52,7 @@ const elements = {
   resetButton: document.getElementById('resetButton'),
   statusPill: document.getElementById('statusPill'),
   infoDrawer: document.getElementById('infoDrawer'),
+  drawerHandle: document.getElementById('drawerHandle'),
   arOverlay: document.getElementById('arOverlay'),
   arCameraVideo: document.getElementById('arCameraVideo'),
   confetti: document.getElementById('confetti'),
@@ -463,6 +464,11 @@ function renderMap() {
 
 function showConfirmReset(show) {
   elements.confirmOverlay.classList.toggle('hidden', !show);
+}
+
+function setDrawer(open) {
+  elements.infoDrawer.classList.toggle('hidden', !open);
+  elements.statusPill.classList.toggle('open', open); // rotates the pill chevron
 }
 
 function recenterMap() {
@@ -1017,7 +1023,14 @@ function bindEvents() {
     else if (status === 'not-presenting') setArEmissiveBoost(false);
   });
   elements.statusPill.addEventListener('click', () => {
-    elements.infoDrawer.classList.toggle('hidden');
+    setDrawer(elements.infoDrawer.classList.contains('hidden'));
+  });
+  elements.drawerHandle.addEventListener('click', () => setDrawer(false));
+  // Tap anywhere outside the drawer (or the pill) to dismiss it.
+  document.addEventListener('click', (event) => {
+    if (elements.infoDrawer.classList.contains('hidden')) return;
+    if (elements.infoDrawer.contains(event.target) || elements.statusPill.contains(event.target)) return;
+    setDrawer(false);
   });
   elements.closeArButton.addEventListener('click', unlockCurrentCheckpoint);
   elements.playAgainButton.addEventListener('click', () => {

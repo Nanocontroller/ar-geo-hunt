@@ -8,7 +8,7 @@
       rel="stylesheet"
       href="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.css"
     />
-    <link rel="stylesheet" href="./styles.css?v=17" />
+    <link rel="stylesheet" href="./styles.css?v=18" />
     <script type="importmap">
       {
         "imports": {
@@ -45,7 +45,7 @@
       </div>
 
       <div id="infoDrawer" class="info-drawer hidden">
-        <div class="drawer-handle"></div>
+        <button id="drawerHandle" class="drawer-handle" aria-label="Close"></button>
         <div class="eyebrow">Jess & B</div>
         <h1 id="checkpointTitle">Checkpoint</h1>
         <div id="checkpointHint" class="hint">Start the challenge to begin tracking your position.</div>
@@ -99,6 +99,7 @@
           <p>
             See where this little detour takes us... it might just end with a good excuse to invite yourself over again.
           </p>
+          <p class="intro-meet">📍 To start, meet me at <strong>Union Market</strong> (Stop 1).</p>
         </div>
         <div id="introResume" class="hidden">
           <div class="eyebrow">Welcome back</div>
@@ -163,6 +164,6 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.30.0/mapbox-gl.js"></script>
     <script src="./route.js?v=12"></script>
-    <script src="./app.js?v=20"></script>
+    <script src="./app.js?v=21"></script>
   </body>
 </html>
