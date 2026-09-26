@@ -7,8 +7,8 @@ window.unionMarketRoute = [
     radius: 20,
     bloom: { strength: 1.1, threshold: 0.8, radius: 0.6 },
     clue: {
-      title: 'Interrogations & First Impressions',
-      text: `Where it all started! It was too loud for my endless questions, I had a terrible spritz, and you paid since my ID was MIA. Let's move to the next stop!\nLet's meet and decide the next stop.`,
+      title: 'Interrogations & Bad Spritzes',
+      text: `The scene of the crime: me interrogating you over the world's worst spritz, and no ID to my name — so you paid. Somehow, it worked. Best first date ever.\nOn to the next one — let's decide it together.`,
       modelUrl: './assets/models/union-market.glb'
     }
   },
