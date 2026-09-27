@@ -515,6 +515,17 @@ body.replaying .location-help-banner {
   margin-bottom: 10px;
 }
 
+.intro-card .intro-tip {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(140, 140, 165, 0.14);
+  border: 1px solid rgba(140, 140, 165, 0.24);
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .ar-overlay {
   position: fixed;
   inset: 0;
