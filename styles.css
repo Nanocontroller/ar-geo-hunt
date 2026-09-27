@@ -273,22 +273,51 @@ h1 {
 }
 
 .progress-list li {
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.progress-item {
+  width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 10px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 10px;
   color: var(--muted);
   font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
 }
 
-.progress-list li.complete {
-  color: var(--text);
-  background: rgba(57, 217, 138, 0.1);
-  border-color: rgba(57, 217, 138, 0.2);
+.progress-item .progress-status {
+  color: var(--accent);
+  white-space: nowrap;
 }
+
+.progress-item.complete {
+  color: var(--text);
+  background: rgba(255, 202, 58, 0.12);
+  border-color: rgba(255, 202, 58, 0.24);
+  cursor: default;
+}
+
+.progress-item.complete .progress-status {
+  color: var(--warning);
+}
+
+.progress-hint {
+  margin-top: 8px;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
 
 .controls {
   position: absolute;

@@ -568,17 +568,44 @@ function renderProgressList() {
   const solvedCount = appState.checkpoints.filter((checkpoint) => checkpoint.solved).length;
   elements.progressCount.textContent = `${solvedCount} / ${appState.checkpoints.length}`;
   elements.progressList.innerHTML = appState.checkpoints
-    .map((checkpoint) => {
-      const completeClass = checkpoint.solved ? 'complete' : '';
-      const label = checkpoint.solved ? 'Solved' : 'Locked';
+    .map((checkpoint, index) => {
+      const solved = checkpoint.solved;
       return `
-        <li class="${completeClass}">
-          <span>${checkpointDisplayName(checkpoint)}</span>
-          <span>${label}</span>
+        <li>
+          <button class="progress-item ${solved ? 'complete' : ''}" data-index="${index}" ${solved ? 'disabled' : ''}>
+            <span>${checkpointDisplayName(checkpoint)}</span>
+            <span class="progress-status">${solved ? 'Visited ✓' : 'Mark visited'}</span>
+          </button>
         </li>
       `;
     })
     .join('');
+}
+
+// Manual catch-up: mark this stop (and every earlier one) as visited and resume from the next.
+// Lets you recover if the browser dropped saved progress, without re-walking the route.
+function markVisitedThrough(index) {
+  for (let i = 0; i <= index; i += 1) {
+    const checkpoint = appState.checkpoints[i];
+    if (!checkpoint.solved) {
+      checkpoint.solved = true;
+      checkpoint.solvedAt = new Date().toISOString();
+      appState.progress.push(checkpoint.id);
+    }
+  }
+
+  const lastIndex = appState.checkpoints.length - 1;
+  if (index < lastIndex) {
+    appState.currentCheckpointIndex = index + 1;
+    appState.phase = 'map';
+  } else {
+    appState.currentCheckpointIndex = lastIndex;
+    appState.phase = 'complete';
+  }
+
+  appState.started = true;
+  persistProgress();
+  render();
 }
 
 function renderButtons() {
@@ -1083,6 +1110,12 @@ function bindEvents() {
     setDrawer(elements.infoDrawer.classList.contains('hidden'));
   });
   elements.drawerHandle.addEventListener('click', () => setDrawer(false));
+  elements.progressList.addEventListener('click', (event) => {
+    const item = event.target.closest('.progress-item');
+    if (!item || item.disabled) return;
+    const index = Number(item.dataset.index);
+    if (Number.isInteger(index)) markVisitedThrough(index);
+  });
   // Tap anywhere outside the drawer (or the pill) to dismiss it.
   document.addEventListener('click', (event) => {
     if (elements.infoDrawer.classList.contains('hidden')) return;
